@@ -1,0 +1,277 @@
+<script>
+import {checkNickName} from "@/js/util";
+import CryptoJS from 'crypto-js'
+
+export default {
+  // eslint-disable-next-line vue/multi-word-component-names
+  name: 'login',
+  data() {
+    return {
+      labelPosition: 'left',
+      user: {
+        username: '',
+        password: '',
+        repwd: ''
+      },
+      activeTab: "login",
+      checked: 'false',
+      img: 'https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/image%2Fpost%2FzTqwAss8y0eLLFBtueJSLqfdnWgUnAcL',
+      isActive: false,
+    }
+  },
+  props: [
+    'refreshBar',
+  ],
+  beforeCreate() {
+    this.$axios.get('/user/is_login').then((res) => {
+      const data = res.data.data
+      if (data.is_login) {
+        this.$message({
+          message: "你已经登录",
+          type: 'success'
+        })
+        this.$router.push('/')
+      }
+    })
+  },
+  created() {
+    this.refreshBar()
+  },
+  watch: {},
+  computed: {},
+  methods: {
+    handleMouseEnter() {
+      this.$refs.container.classList.add("back");
+      this.$refs.img.classList.add("bg-mask");
+    },
+    handleMouseLeave() {
+      this.$refs.container.classList.remove("back");
+      this.$refs.img.classList.remove("bg-mask");
+    },
+    handleNickNameBlur() {
+      const username = this.user.username
+      if (!checkNickName(username)) {
+        return false
+      }
+      let url = '/user/' + encodeURIComponent(username)
+
+      this.$axios.get(url).then((res) => {
+        if (res.data.data.exist === true) {
+          this.$message({
+            message: '昵称已存在',
+            type: 'error',
+          })
+          return false
+        }
+        return true
+      })
+    },
+    handlePwdBlur() {
+      const pwd = this.user.password
+      if (pwd.length < 6 || pwd.length > 63) {
+        this.$message({
+          message: '密码长度为6-63位',
+          type: 'error'
+        })
+        return false
+      }
+      if (this.user.repwd !== '') {
+        return this.handleRePwdBlur()
+      }
+      return true
+    },
+    handleRePwdBlur() {
+      const pwd = this.user.password
+      const repwd = this.user.repwd
+      if (pwd !== repwd) {
+        this.$message({
+          message: '两次输入的密码不一致',
+          type: 'error'
+        })
+        return false
+      }
+      return true
+    },
+    register() {
+      if (this.handleNickNameBlur()) {
+        return;
+      }
+      if (!this.handlePwdBlur()) {
+        console.log("pwd")
+        return;
+      }
+      if (!this.handleRePwdBlur()) {
+        console.log("repwd")
+        return;
+      }
+      const pwd = CryptoJS.MD5(this.user.password).toString()
+      const repwd = CryptoJS.MD5(this.user.repwd).toString()
+      this.$axios.post('/register', {
+        username: this.user.username,
+        password: pwd,
+        repwd: repwd
+      }).then((res) => {
+        if (res.data.code === 0) {
+          this.$confirm('注册成功，是否直接登录？', '注册成功', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'success'
+          }).then(() => {
+            this.login()
+          }).catch(() => {
+            location.reload()
+          })
+        } else {
+          this.$confirm('服务错误', res.data.msg, {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'error'
+          }).then(() => {
+            location.reload()
+          }).catch(() => {
+
+          })
+        }
+      })
+    },
+    login() {
+      if (!checkNickName(this.user.username)) {
+        return
+      }
+      const pwd = CryptoJS.MD5(this.user.password).toString()
+      // console.log(pwd)
+      this.$axios.post('/login', {
+        username: this.user.username,
+        password: pwd
+      }).then((res) => {
+        const data = res.data
+        if (data.code === 0) {
+
+          try {
+            this.$storage.set("token", data.data.token, this.ExpireTime)
+            this.$storage.set("user", data.data.user, this.ExpireTime)
+          } catch (e) {
+            console.log("local" + e)
+          }
+          const role = data.data.user.role
+          // 刷新顶头导航栏
+          this.refreshBar()
+          if (role === 0) {
+            this.$router.push('/')
+          }
+          if (role === 1) {
+            this.$router.push('/back-Management')
+          }
+        } else {
+          this.$confirm(data.msg, '用户名或密码错误！', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'error'
+          }).then(() => {
+          }).catch(() => {
+
+          })
+        }
+      }).catch()
+    }
+  }
+}
+</script>
+
+<template>
+  <div style="width: 100vw; height: 100vh">
+    <img class="back_img" alt="" :src="img" ref="img">
+    <div class="container" ref="container"
+         @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+      <el-tabs class="tab" v-model="activeTab" stretch="">
+        <el-tab-pane name="login">
+          <span slot="label"><img style="max-height: 35px; float: left;"
+                                  src="https://prod-alicdn-community.kurobbs.com/postBanner/1702370576858915978.png"
+                                  alt="">登录</span>
+          <el-form class="form" label-width="80px" :model="user" label-position="right">
+            <el-form-item label="昵称">
+              <el-input v-model="user.username"
+                        style="width: 220px;"
+                        placeholder="请输入昵称或邮箱"></el-input>
+            </el-form-item>
+            <el-form-item label="密码">
+              <el-input v-model="user.password" style="width: 220px;" type="password"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="login">登录</el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane name="register">
+          <span slot="label">注册</span>
+          <el-form class="form" label-width="80px" :model="user">
+            <el-form-item label="昵称">
+              <el-input v-model="user.username" style="width: 220px;"
+                        @blur="handleNickNameBlur"></el-input>
+            </el-form-item>
+            <el-form-item label="密码">
+              <el-input ref="pwd" v-model="user.password" style="width: 220px;" type="password"
+                        @blur="handlePwdBlur"></el-input>
+            </el-form-item>
+            <el-form-item label="确认密码">
+              <el-input ref="repwd" v-model="user.repwd" style="width: 220px;" type="password"
+                        @blur="handleRePwdBlur"></el-input>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="register">注册</el-button>
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.container {
+  width: 350px;
+  //height: auto;
+  max-height: 350px;
+  border: 2px solid #ccc;
+  border-radius: 20px;
+  position: relative;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  background-color: transparent;
+  z-index: 1;
+  backdrop-filter: blur(5px);
+  transition: all 1s;
+}
+
+/* 或者使用 >>> 穿透样式作用域 */
+.container >>> .el-tabs__item {
+  /* ... 其他样式 ... */
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.back {
+  border: 1px solid rgb(232, 183, 255) !important;
+  box-shadow: 1px 0 10px 3px rgba(232, 183, 255, 0.6) !important;
+  background-color: #fff !important;
+}
+
+.bg-mask {
+  filter: blur(5px);
+  transition: all 1s;
+}
+
+.tab {
+  width: 100%;
+  height: 100%;
+}
+
+
+.back_img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  position: fixed;
+}
+</style>

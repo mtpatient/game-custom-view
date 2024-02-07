@@ -1,28 +1,45 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div>
+    <Head_navigate :key="barKey"></Head_navigate>
+    <router-view :refreshBar="refreshBar" class="router_view"/>
+    <div class="goTop">
+      <el-backtop>
+        <!--          target=".page-component__scroll .el-scrollbar__wrap">-->
+      </el-backtop>
+
+    </div>
   </div>
+
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+
+import Head_navigate from "@/components/head-navigater.vue";
 
 export default {
   name: 'App',
-  components: {
-    HelloWorld
+  data() {
+    return {
+      barKey: 0
+    }
+  },
+  components: {Head_navigate},
+  methods: {
+    refreshBar() {
+      this.barKey += 1
+    }
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+.router_view {
+  top: 60px;
+  position: fixed;
+}
+
+.goTop {
+  height: 100vh;
+  overflow-x: hidden;
 }
 </style>
