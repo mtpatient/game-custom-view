@@ -15,7 +15,7 @@ export default {
       },
       activeTab: "login",
       checked: 'false',
-      img: 'https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/image%2Fpost%2FzTqwAss8y0eLLFBtueJSLqfdnWgUnAcL',
+      img: '',
       isActive: false,
     }
   },
@@ -25,13 +25,15 @@ export default {
   beforeCreate() {
     this.$axios.get('/user/is_login').then((res) => {
       const data = res.data.data
-      if (data.is_login) {
+      if (data !== undefined && data.is_login) {
         this.$message({
           message: "你已经登录",
           type: 'success'
         })
         this.$router.push('/')
       }
+    }).catch(() => {
+
     })
   },
   created() {

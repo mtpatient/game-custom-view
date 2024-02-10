@@ -108,9 +108,10 @@ export default {
     del(url, data) {
         return instance.delete(url, data)
     },
-    putImg(url, data) {
+    async putImg(url, data, f) {
         const xhr = new XMLHttpRequest();
         xhr.open('PUT', url, true)
+        xhr.onload = f
         xhr.send(data)
     }
 }

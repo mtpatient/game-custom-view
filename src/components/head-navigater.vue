@@ -6,7 +6,7 @@ export default {
       searchText: '',
       notice: 'new',
       // avatar_ulr: 'https://prod-alicdn-community.kurobbs.com/headCode/RoleHeadR4Bianka.png',
-      default_url: 'https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/image/avatar/default.png',
+      default_avatar: this.Default_Avatar,
       notices: [
         //   0：网站通知；1：回复我的；2：给我点赞的；3：@我的
         // TODO 获取通知消息并赋值
@@ -100,11 +100,21 @@ export default {
       this.$router.push('/login')
     },
     handelToEdit() {
-      if (this.is_login) {
-        this.$router.push('/edit')
-      } else {
-        this.$router.push('/login')
-      }
+      this.$axios.get('/user/is_login').then((res) => {
+        if (res.data.data.is_login) {
+          this.$router.push('/edit')
+        } else {
+          this.$storage.remove('token')
+          this.$storage.remove('user')
+          this.$router.push('/login')
+          this.$message({
+            message: '请先登录！',
+            type: 'error'
+          })
+        }
+      }).catch(() => {
+
+      })
     },
   }
 }
@@ -216,7 +226,7 @@ export default {
                    style="width: 100%;text-align: center;
                    margin:0 auto;">立即登录
         </el-button>
-        <el-avatar slot="reference" :size="50" :src="default_url"></el-avatar>
+        <el-avatar slot="reference" :size="50" :src="default_avatar"></el-avatar>
       </el-popover>
     </div>
   </div>

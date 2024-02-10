@@ -27,7 +27,10 @@ export default {
   methods: {
     refreshBar() {
       this.barKey += 1
-    }
+    },
+  },
+  mounted() {
+
   }
 }
 </script>
@@ -35,7 +38,7 @@ export default {
 <style>
 .router_view {
   top: 60px;
-  position: fixed;
+  position: absolute;
 }
 
 .goTop {
