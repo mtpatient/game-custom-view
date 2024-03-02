@@ -29,7 +29,7 @@ export default {
         username: '伪相',
         img: 'https://prod-alicdn-community.kurobbs.com/headCode/RoleHeadR4Bianka.png'
       },
-      logo: 'https://web-static.kurobbs.com/resource/prod/assets/pns-forum-logo-xwFfOEq-.png'
+      logo: require('@/assets/logo.png')
     }
   },
   beforeCreate() {
@@ -45,6 +45,8 @@ export default {
       }
       this.user.id = user.id
       this.user.username = user.username
+
+      // TODO 设置头像
 
       const imgRegx = /^((https|http|ftp|rtsp|mms)?:\/\/)[^\s]+/
       if (imgRegx.test(user.img)) {
@@ -93,7 +95,9 @@ export default {
             })
           }
         })
-      }).catch()
+      }).catch(() => {
+
+      })
     }
     ,
     handelToLogin() {

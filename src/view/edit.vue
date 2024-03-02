@@ -5,29 +5,16 @@ import "quill/dist/quill.snow.css"; // for snow theme
 import {addQuillTitle} from "@/js/quill-titlle";
 import Quill from 'quill'
 import QuillCustomTag from "@/js/quill-custom-tag";
-import Compressor from 'compressorjs'
-import {generateRandomStrings} from "@/js/util";
-import * as qiniu from 'qiniu-js'
-
-// import Spinner from 'vue-simple-spinner' // 加载
-// import ImageResize from 'quill-image-resize-module' // 调整图片大小组件。
-// import {ImageExtend} from 'quill-image-paste-module' // 粘贴图片
-// import {ImageExtend, QuillWatch} from 'quill-image-extend-module'
-// Quill.register('modules/imageDrop', ImageDrop)
-// Quill.register('modules/imageResize', ImageResize)
-// Quill.register('modules/imageExtend', ImageExtend)
+import {generateRandomStrings, handleImgCompress} from "@/js/util";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: "edit",
   components: {
     quillEditor,
-    // Spinner
   },
   data() {
     return {
-      title: '',
-      content: '',
       text: '',
       img_nums: 0,
       err: '',
@@ -53,12 +40,6 @@ export default {
               [{indent: '-1'}, {indent: '+1'}],
               // 文本方向-----[{'direction': 'rtl'}]
               [{direction: 'rtl'}],
-              // 字体大小-----[{ size: ['small', false, 'large', 'huge'] }]
-              // [{size: ['small', false, 'large', 'huge']}],
-              // [{size: ['small']}],
-              // 标题-----[{ header: [1, 2, 3, 4, 5, 6, false] }]
-              // [{header: [1, 2, 3, 4, 5, 6, false]}],
-              // 字体颜色、字体背景颜色-----[{ color: [] }, { background: [] }]
               [{color: []}, {background: []}],
               // 字体种类-----[{ font: [] }]
               // [{font: []}],
@@ -75,47 +56,30 @@ export default {
               }
             }
           },
-          // imageResize: {
-          // displayStyles: {
-          //   backgroundColor: 'black',
-          //   border: 'none',
-          //   color: 'white',
-          // },
-          // modules: ['Resize', 'DisplaySize', 'Toolbar']
-          // modules: ['Toolbar']
-          // },
-          // imageExtend: {
-          //   // loading: false,
-          //   maxHeight: 300,
-          //   maxImage: 1,
-          //   allowedTypes: ['image/jpeg', 'image/png'],
-          //   // 最大文件大小限制，单位为MB
-          //   size: 1,
-          //   sizeError: () => {
-          //     this.$message({
-          //       message: '图片大小超过限制:1MB',
-          //       type: 'error'
-          //     })
-          //   },
-          //
-          // },
-        },
-        // formats: [
-        //   'header', 'font', 'size',
-        //   'bold', 'italic', 'underline', 'strike', 'blockquote',
-        //   'list', 'bullet', 'indent',
-        //   'link', 'image', 'video'
-        // ],
+        }
       },
-      section: [
-        {id: 0, label: '闲聊'},
-        {id: 1, label: '同人'}
-      ],
-      cur_section: 0,
+      sections: [],
+      cur_section: '',
       isPrivate: false,
-      // isLoading: false,
-      imgList: [],
+      post: {
+        user_id: 0,
+        title: '',
+        content: '',
+        status: 0,
+        section: 0,
+      }
     }
+  },
+  created() {
+    this.$axios.get('/section/all').then(res => {
+      if (res.data.code === 0) {
+        this.sections = res.data.data.sections
+      } else {
+        this.$message.error('获取板块列表错误!')
+      }
+    }).catch(err => {
+      console.log(err)
+    })
   },
   mounted() {
     addQuillTitle()
@@ -125,11 +89,20 @@ export default {
     // eslint-disable-next-line vue/return-in-computed-property
     textLength() {
       return this.text.length + this.img_nums * 100
+    },
+    getSectionId() {
+      let id = 0
+      this.sections.forEach(item => {
+        if (item.name === this.cur_section) {
+          id = item.id
+        }
+      })
+      return id
     }
   },
   methods: {
     handleTitle() {
-      if (this.title === '') {
+      if (this.post.title === '') {
         this.$message({
           message: '标题不能为空!',
           type: 'error'
@@ -137,7 +110,42 @@ export default {
       }
     },
     handlePublish() {
+      if (this.post.title === '') {
+        this.$message.error('标题不能为空！')
+        return;
+      }
+      if (this.textLength === 0) {
+        this.$message.error('正文不能为空！')
+        return;
+      }
+      this.post.section = this.getSectionId
+      if (this.post.section === 0) {
+        this.$message.error('请选择所属板块！')
+        return;
+      }
+      this.post.status = this.isPrivate ? 2 : 0
+      let imgList = []
+      this.post.user_id = this.$storage.get('user').id
+      document.querySelectorAll('.ql-editor img').forEach(item => {
+        const src = item.getAttribute('src')
+        if (src) {
+          imgList.push(src)
+        }
+      })
+      this.$axios.post('/post', {
+        "post": this.post,
+        "images": imgList
+      }).then(res => {
+        if (res.data.code === 0) {
+          this.$message.success('发布成功!')
+          this.$router.push('/')
+        } else {
+          this.$message.error('服务错误!')
+          location.reload()
+        }
+      }).catch(() => {
 
+      })
     },
     handleImage() {
       // this.isLoading = true
@@ -149,7 +157,7 @@ export default {
       input.onchange = async () => {
         const files = input.files;
         if (files.length + this.img_nums > 9) {
-          this.$message.error('你上传的图片太多了！限9张！')
+          this.$message.error('你上传的图片太多了！限上传9张！')
           return
         }
         if (files.length > 0) {
@@ -182,108 +190,36 @@ export default {
       let doc = new DOMParser().parseFromString(html, 'text/html')
       return doc.body.textContent || '';
     },
-    handleImgCompress(files) {
-      return new Promise((resolve, reject) => {
-        const resFiles = [];
-        let compressCount = 0;
-
-        for (let i = 0; i < files.length; i++) {
-          new Compressor(files[i], {
-            quality: 0.2,
-            success(result) {
-              console.log('compress success', result.size)
-              const compressedFile = new File([result], files[i].name, {type: files[i].type});
-              resFiles.push(compressedFile);
-              compressCount++;
-
-              // 如果所有文件都已压缩完成，则resolve Promise
-              if (compressCount === files.length) {
-                resolve(resFiles);
-              }
-            },
-            error(err) {
-              console.log('压缩失败:', err);
-              compressCount++;
-              // 如果所有文件都已压缩完成（即使有错误），则resolve Promise
-              if (compressCount === files.length) {
-                resolve(resFiles);
-              }
-            }
-          });
-        }
-
-        // 如果没有文件需要压缩，则直接resolve空数组
-        if (files.length === 0) {
-          resolve(resFiles);
-        }
-      });
-    },
     handleImgUpload(pendFiles, ids) {
       if (pendFiles.length === 0) {
         return;
       }
       // 图片压缩
-      this.handleImgCompress(pendFiles).then((files) => {
+      handleImgCompress(pendFiles).then((files) => {
         if (files.length > 0) {
-          // TODO 判断七牛云是否已满
-          if (this.QINIUOS) {
-            // 上传图片： 七牛云
-            this.$axios.get(`/img/getUploadToken/${files.length}`).then((res) => {
-              if (res.data.code === 0) {
-                const names = res.data.data.names
-                const token = res.data.data.token
-                const domain = this.QINIUDomain
-                for (let i = 0; i < ids.length; i++) {
-                  const observable = qiniu.upload(files[i], names[i], token)
-                  const observer = {
-                    // eslint-disable-next-line no-unused-vars
-                    next() {
-                      // 处理上传过程
-                    },
-                    // eslint-disable-next-line no-unused-vars
-                    error() {
-                      // 上传错误
-                    },
-                    complete() {
-                      // 上传完成后的信息
-                      // console.log(names[i])
-                      document.querySelector('#' + ids[i]).src = domain + '/' + names[i]
-                    }
-                  }
-                  observable.subscribe(observer) // 上传开始
-                }
-              } else {
-                this.$message.error('服务错误!')
+          // 上传图片: COS
+          this.$axios.getCOSSignature(files.length).then((res) => {
+            if (res.data.code === 0) {
+              const signatures = res.data.data.signatures
+              // console.log(signatures)
+              if (signatures !== null && signatures.length !== files.length) {
+                this.$message.error("请求错误")
+                return
               }
-            }).catch((error) => {
-              console.log(error)
-              this.$message.error('服务错误')
-            })
-          } else {
-            // 上传图片: COS
-            this.$axios.get(`/img/getSignature/${files.length}`).then((res) => {
-              if (res.data.code === 0) {
-                const signatures = res.data.data.signatures
-                // console.log(signatures)
-                if (signatures !== null && signatures.length !== files.length) {
-                  this.$message.error("请求错误")
-                  return
-                }
-                for (let i = 0; i < files.length; i++) {
-                  this.$axios.putImg(signatures[i], files[i], function () {
-                    let url = signatures[i].split('?') // 处理签名为url
-                    // console.log(url[0])
-                    document.querySelector('#' + ids[i]).src = url[0]
-                  })
-                }
-              } else {
-                this.$message.error('服务错误!')
+              for (let i = 0; i < files.length; i++) {
+                this.$axios.putImg(signatures[i], files[i], function () {
+                  let url = signatures[i].split('?') // 处理签名为url
+                  // console.log(url[0])
+                  document.querySelector('#' + ids[i]).src = url[0]
+                })
               }
-            }).catch((error) => {
-              console.log(error)
-              this.$message.error('服务错误')
-            })
-          }
+            } else {
+              this.$message.error('服务错误!')
+            }
+          }).catch((error) => {
+            console.log(error)
+            this.$message.error('服务错误')
+          })
         }
       })
     }
@@ -296,20 +232,14 @@ export default {
     <div id="editor_container">
       <div id="editor_container_text">
         <div id="title-box">
-          <b class="mustSelect">标题</b> ： <input v-model="title"
+          <b class="mustSelect">标题</b> ： <input v-model="post.title"
                                                   id="title" placeholder="标题(必填)"
                                                   @blur="handleTitle" maxlength="30"/>
-          <span style="color: #c0c4cc">{{ title.length + ' / 30' }}</span>
+          <span style="color: #c0c4cc">{{ post.title.length + ' / 30' }}</span>
         </div>
         <div id="editor-box">
-          <!--          <Spinner-->
-          <!--              id="editor-spinner" size="60"-->
-          <!--              font-size="20" message="uploading ..."-->
-          <!--              font-color=""-->
-          <!--              v-if="isLoading"-->
-          <!--          ></Spinner>-->
           <quill-editor ref="quill_editor" :options="editorOption"
-                        id="editor" v-model="content"
+                        id="editor" v-model="post.content"
                         @input="handleEditorChange($event)"
           >
           </quill-editor>
@@ -322,7 +252,9 @@ export default {
         <div class="postOption_box">
           <span class="mustSelect" style="font-size: 18px">所属板块 : </span>
           <el-radio-group v-model="cur_section">
-            <el-radio-button v-for="s in section" :key="s.value" :label="s.label"></el-radio-button>
+            <el-radio-button v-for="s in sections"
+                             :key="s.id"
+                             :label="s.name"></el-radio-button>
           </el-radio-group>
         </div>
         <div class="postOption_box" style="font-size: 18px">

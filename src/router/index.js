@@ -25,19 +25,13 @@ const baseRoutes = [
             title: 'Edit'
         }
     },
-    {
-        path: '/back-Management',
-        name: '',
-        component: () => import('@/view/backManagement.vue'),
-        meta: {
-            title: '后台管理'
-        }
-    }
+
 ];
 
 import userRoutes from './user'
+import backRoutes from './backManagement'
 
-const routes = baseRoutes.concat(userRoutes);
+const routes = baseRoutes.concat(userRoutes, backRoutes);
 
 // 路由规则
 const router = new VueRouter({routes})

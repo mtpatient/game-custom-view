@@ -1,5 +1,5 @@
 import {Message} from 'element-ui'
-
+import Compressor from 'compressorjs'
 export function checkNickName(name) {
     const emailRegex = /^[A-Za-z0-9]+([-._][A-Za-z0-9]+)*@[A-Za-z0-9]+(-[A-Za-z0-9]+)*(\.[A-Za-z]{2,6}|[A-Za-z]{2,4}\.[A-Za-z]{2,3})$/
 
@@ -63,4 +63,41 @@ export function generateRandomStrings(len, count) {
     }
 
     return _strings
+}
+
+export function handleImgCompress(files) {
+    return new Promise((resolve, reject) => {
+        const resFiles = [];
+        let compressCount = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            new Compressor(files[i], {
+                quality: 0.2,
+                success(result) {
+                    // console.log('compress success', result.size)
+                    const compressedFile = new File([result], files[i].name, {type: files[i].type});
+                    resFiles.push(compressedFile);
+                    compressCount++;
+
+                    // 如果所有文件都已压缩完成，则resolve Promise
+                    if (compressCount === files.length) {
+                        resolve(resFiles);
+                    }
+                },
+                error(err) {
+                    console.log('压缩失败:', err);
+                    compressCount++;
+                    // 如果所有文件都已压缩完成（即使有错误），则resolve  Promise
+                    if (compressCount === files.length) {
+                        resolve(resFiles);
+                    }
+                }
+            });
+        }
+
+        // 如果没有文件需要压缩，则直接resolve空数组
+        if (files.length === 0) {
+            resolve(resFiles);
+        }
+    });
 }

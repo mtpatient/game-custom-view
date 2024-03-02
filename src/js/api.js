@@ -105,13 +105,16 @@ export default {
     put(url, data) {
         return instance.put(url, data)
     },
-    del(url, data) {
-        return instance.delete(url, data)
+    del(url) {
+        return instance.delete(url)
     },
     async putImg(url, data, f) {
         const xhr = new XMLHttpRequest();
         xhr.open('PUT', url, true)
         xhr.onload = f
         xhr.send(data)
-    }
+    },
+    getCOSSignature(count){
+        return instance.get(`/img/getSignature/${count}`)
+    },
 }

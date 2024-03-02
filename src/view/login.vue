@@ -15,7 +15,7 @@ export default {
       },
       activeTab: "login",
       checked: 'false',
-      img: '',
+      img: require('@/assets/bg.jpg'),
       isActive: false,
     }
   },
@@ -271,7 +271,7 @@ export default {
 
 .back_img {
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 60px);
   object-fit: cover;
   z-index: -1;
   position: fixed;

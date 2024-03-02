@@ -29,8 +29,22 @@ export default {
       this.barKey += 1
     },
   },
-  mounted() {
+  beforeCreate() {
 
+  },
+  created() {
+
+  },
+  mounted() {
+    this.$axios.get('/user/is_login').then((res) => {
+      if (!res.data.data.is_login) {
+        this.$storage.remove('token')
+        this.$storage.remove('user')
+        this.refreshBar()
+      }
+    }).catch(() => {
+
+    })
   }
 }
 </script>
@@ -39,6 +53,7 @@ export default {
 .router_view {
   top: 60px;
   position: absolute;
+
 }
 
 .goTop {
