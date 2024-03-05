@@ -25,9 +25,9 @@ export default {
       ],
       is_login: false,
       user: {
-        id: '1',
-        username: '伪相',
-        img: 'https://prod-alicdn-community.kurobbs.com/headCode/RoleHeadR4Bianka.png'
+        id: 0,
+        username: '',
+        avatar: ''
       },
       logo: require('@/assets/logo.png')
     }
@@ -35,29 +35,11 @@ export default {
   beforeCreate() {
   },
   created() {
-    this.$nextTick(() => {
-      const token = this.$storage.get('token')
-      const user = this.$storage.get("user")
-      if (user === null || token === null ||
-          user === undefined || token === undefined) {
-        console.log('token不存在或过期')
-        return
-      }
-      this.user.id = user.id
-      this.user.username = user.username
-
-      // TODO 设置头像
-
-      const imgRegx = /^((https|http|ftp|rtsp|mms)?:\/\/)[^\s]+/
-      if (imgRegx.test(user.img)) {
-        console.log(user.img)
-        this.user.img = user.img
-      }
-
-      this.is_login = true
-    })
+    this.getUserInfo()
   },
   mounted() {
+    // 解决localstorage同步问题
+    window.addEventListener('storage', this.getUserInfo)
   },
   watch: {},
   methods: {
@@ -72,8 +54,11 @@ export default {
     }
     ,
     handleToUserDetail() {
-      // TODO 判断用户是否登录
-      this.$router.push('/user/id')
+      let page = this.$router.resolve({
+        path: '/person-center/post',
+        query: {id: this.user.id}
+      })
+      window.open(page.href, '_blank')
     }
     ,
     handelLogout() {
@@ -106,7 +91,10 @@ export default {
     handelToEdit() {
       this.$axios.get('/user/is_login').then((res) => {
         if (res.data.data.is_login) {
-          this.$router.push('/edit')
+          let page = this.$router.resolve({
+            path: '/edit'
+          })
+          window.open(page.href, '_blank')
         } else {
           this.$storage.remove('token')
           this.$storage.remove('user')
@@ -120,6 +108,23 @@ export default {
 
       })
     },
+    getUserInfo() {
+      const token = this.$storage.get('token')
+      const user = this.$storage.get("user")
+      if (user === null || token === null ||
+          user === undefined || token === undefined) {
+        console.log('token不存在或过期')
+        return
+      }
+
+      this.user.username = user.username
+      this.user.id = user.id
+      this.user.avatar = user.avatar
+      this.is_login = true
+    },
+    handelAvatarError(){
+      return true
+    }
   }
 }
 </script>
@@ -171,10 +176,12 @@ export default {
       <el-popover placement="bottom" width="160px" trigger="hover">
         <div class="avatar_box">
           <span class="userInfo">
-            <el-avatar slot="reference" :size="50" :src="user.img"></el-avatar>
+            <el-avatar slot="reference" :size="50" :src="user.avatar" @error="handelAvatarError">
+              <img :src="require('@/assets/defalut_avatar.png')"/>
+            </el-avatar>
             <span class="userInfo_inbox">
-              <span style="font-size: 20px">{{ user.username }}</span>
-              <span style="font-size: 12px; background-color: #e6e6e6">UID: {{ 100000000 + user.id }}</span>
+              <span style="font-size: 16px; color:  #292B2F; font-weight: 700">{{ user.username }}</span>
+              <span style="font-size: 12px;color: #cccccc">UID: {{ 10000000 + user.id }}</span>
             </span>
           </span>
           <div @click="handleToUserDetail">
@@ -215,7 +222,9 @@ export default {
             <span>退出登录</span>
           </div>
         </div>
-        <el-avatar slot="reference" :size="50" :src="user.img"></el-avatar>
+        <el-avatar slot="reference" :size="50" :src="user.avatar" @error="handelAvatarError">
+          <img :src="require('@/assets/defalut_avatar.png')"/>
+        </el-avatar>
       </el-popover>
     </div>
     <!--    未登录: 跳转登录按钮-->

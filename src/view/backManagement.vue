@@ -3,7 +3,6 @@ export default {
   name: "backManagement",
   data() {
     return {
-
     }
   },
   methods: {

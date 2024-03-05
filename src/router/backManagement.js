@@ -10,7 +10,7 @@ export default [
             {
                 path: 'section',
                 name: 'section',
-                component: () => import('@/components/SectionComponent.vue'),
+                component: () => import('@/components/backManagement/SectionComponent.vue'),
                 meta: {
                     title: '板块管理'
                 }
@@ -18,7 +18,7 @@ export default [
             {
                 path: 'avatar',
                 name: 'avatar',
-                component: () => import('@/components/AvatarManagement.vue'),
+                component: () => import('@/components/backManagement/AvatarManagement.vue'),
                 meta: {
                     title: '头像管理'
                 }

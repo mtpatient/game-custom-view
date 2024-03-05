@@ -1,5 +1,6 @@
 import {Message} from 'element-ui'
 import Compressor from 'compressorjs'
+
 export function checkNickName(name) {
     const emailRegex = /^[A-Za-z0-9]+([-._][A-Za-z0-9]+)*@[A-Za-z0-9]+(-[A-Za-z0-9]+)*(\.[A-Za-z]{2,6}|[A-Za-z]{2,4}\.[A-Za-z]{2,3})$/
 

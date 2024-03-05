@@ -19,9 +19,7 @@ export default {
       isActive: false,
     }
   },
-  props: [
-    'refreshBar',
-  ],
+  props: [],
   beforeCreate() {
     this.$axios.get('/user/is_login').then((res) => {
       const data = res.data.data
@@ -32,12 +30,12 @@ export default {
         })
         this.$router.push('/')
       }
-    }).catch(() => {
-
+    }).catch((err) => {
+      console.log(err)
     })
   },
   created() {
-    this.refreshBar()
+    this.$emit('user_update')
   },
   watch: {},
   computed: {},
@@ -55,7 +53,7 @@ export default {
       if (!checkNickName(username)) {
         return false
       }
-      let url = '/user/' + encodeURIComponent(username)
+      let url = '/user/name-exist/' + encodeURIComponent(username)
 
       this.$axios.get(url).then((res) => {
         if (res.data.data.exist === true) {
@@ -157,7 +155,7 @@ export default {
           }
           const role = data.data.user.role
           // 刷新顶头导航栏
-          this.refreshBar()
+          this.$emit('user_update')
           if (role === 0) {
             this.$router.push('/')
           }

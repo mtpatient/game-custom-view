@@ -1,7 +1,7 @@
 <template>
   <div>
     <Head_navigate :key="barKey"></Head_navigate>
-    <router-view :refreshBar="refreshBar" class="router_view"/>
+    <router-view @user_update="refreshBar" class="router_view"/>
     <div class="goTop">
       <el-backtop>
         <!--          target=".page-component__scroll .el-scrollbar__wrap">-->
@@ -37,7 +37,7 @@ export default {
   },
   mounted() {
     this.$axios.get('/user/is_login').then((res) => {
-      if (!res.data.data.is_login) {
+      if (res.data && !res.data.data.is_login) {
         this.$storage.remove('token')
         this.$storage.remove('user')
         this.refreshBar()
