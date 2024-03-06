@@ -14,7 +14,7 @@ const baseRoutes = [
         name: 'login',
         component: () => import('@/view/login.vue'),
         meta: {
-            title: 'login'
+            title: '登录'
         }
     },
     {
@@ -22,10 +22,17 @@ const baseRoutes = [
         name: 'edit',
         component: () => import('@/view/edit.vue'),
         meta: {
-            title: 'Edit'
+            title: '发布帖子'
         }
     },
-
+    {
+        path: '/post-detail/:id',
+        name: 'post-detail',
+        component: () => import('@/view/postDetail.vue'),
+        meta: {
+            title: '帖子详情'
+        }
+    }
 ];
 
 import userRoutes from './user'

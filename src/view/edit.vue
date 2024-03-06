@@ -172,7 +172,6 @@ export default {
                   `<div contenteditable="true" class="editor-image-container">
                 <img id="${ids[i]}" src="${this.Editor_Img_Uploading}"
                  class="editor-img">
-<!--                <button class="editor-img-btn">设为封面</button>-->
              </div>`)
             } catch (err) {
               console.log(err)
@@ -272,12 +271,13 @@ export default {
 
 <style>
 #edit {
-  width: 100%;
+  width: 99%;
   min-width: 1200px;
   background-color: #f6f7f8;
   height: auto;
   min-height: 950px;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #editor_container {

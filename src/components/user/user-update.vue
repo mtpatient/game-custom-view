@@ -36,7 +36,6 @@ export default {
           this.user = user
           this.pre_avatar.url = user.avatar
           this.avatar_url = user.avatar
-          this.$storage.set('user', user, this.ExpireTime)
         } else {
           this.$message.error('服务错误')
         }
@@ -72,7 +71,7 @@ export default {
         if (res.data.code === 0) {
           this.$message.success('更新成功')
           this.getUserInfo()
-          this.$emit('user_update')
+          this.$EventBus.$emit('user_update')
         } else {
           this.$message.error('更新失败')
         }

@@ -13,6 +13,8 @@ Vue.use(ElementUI)
 Vue.use(VueRouter)
 
 Vue.config.productionTip = false
+// 消息总线
+Vue.prototype.$EventBus = new Vue()
 
 // 后端api前缀
 Vue.prototype.REQUEST_URL = config.REQUEST_URL

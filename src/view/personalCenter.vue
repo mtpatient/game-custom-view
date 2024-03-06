@@ -1,6 +1,4 @@
 <script>
-import {isLogin} from "@/js/util";
-
 export default {
   name: "personalCenter",
 
@@ -43,9 +41,7 @@ export default {
       const uid = this.$route.query.id
       this.$axios.get(`/user/${uid}`).then(res => {
         if (res.data.code === 0) {
-          const user = res.data.data.user
-          this.user = user
-          this.$storage.set('user', user, this.ExpireTime)
+          this.user = res.data.data.user
         } else {
           this.$message.error('服务错误')
         }
@@ -53,9 +49,9 @@ export default {
         console.log(reason)
       })
     },
-    userUpdate(){
+    userUpdate() {
       this.getUserInfo()
-      this.$emit('user_update')
+      this.$storage.set('user', this.user, this.ExpireTime)
     }
   },
   created() {
@@ -92,15 +88,9 @@ export default {
         })
       })
     })
-    window.addEventListener('storage', () => {
-      const token = this.$storage.get('token')
-      const user = this.$storage.get("user")
-      if (user === null || token === null ||
-          user === undefined || token === undefined) {
-        console.log('token不存在或过期')
-        return
-      }
-      this.user = user
+
+    this.$EventBus.$on('user_update', () => {
+      this.userUpdate()
     })
   }
 }
@@ -174,7 +164,7 @@ export default {
                       <span>粉丝</span></li>
                   </ul>
                 </div>
-                <div class="setting-management-list aside-item">
+                <div class="setting-management-list aside-item" v-show="OnSelf">
                   <div class="aside-item-title">设置管理</div>
                   <ul class="aside-content">
                     <li ref="edit" class="flex-vertical-center" value="edit" id="edit">
@@ -194,7 +184,7 @@ export default {
               </el-aside>
               <el-main class="el-main">
                 <div class="main-content-box">
-                  <router-view @user_update="userUpdate"></router-view>
+                  <router-view></router-view>
                 </div>
               </el-main>
             </el-container>

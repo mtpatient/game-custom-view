@@ -35,7 +35,7 @@ export default {
     })
   },
   created() {
-    this.$emit('user_update')
+
   },
   watch: {},
   computed: {},
@@ -155,7 +155,7 @@ export default {
           }
           const role = data.data.user.role
           // 刷新顶头导航栏
-          this.$emit('user_update')
+          this.$EventBus.$emit('user_update')
           if (role === 0) {
             this.$router.push('/')
           }

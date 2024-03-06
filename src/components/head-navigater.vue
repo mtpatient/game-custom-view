@@ -35,11 +35,33 @@ export default {
   beforeCreate() {
   },
   created() {
-    this.getUserInfo()
+    this.getUserInfoFromStorage()
   },
   mounted() {
     // 解决localstorage同步问题
-    window.addEventListener('storage', this.getUserInfo)
+    window.addEventListener('storage', () => {
+      // console.log('update from storage')
+      this.getUserInfoFromStorage()
+    })
+    // 动态更新用户信息
+    this.$EventBus.$on('user_update', () => {
+      // console.log('update from api')
+      const uid = this.$storage.get('user').id
+      if (uid === undefined || uid === null) {
+        return
+      }
+      this.$axios.get(`/user/${uid}`).then(res => {
+        if (res.data.code === 0) {
+          this.user = res.data.data.user
+          this.is_login = true
+          this.$storage.set('user', this.user, this.ExpireTime)
+        } else {
+          this.$message.error('服务错误')
+        }
+      }).catch((reason) => {
+        console.log(reason)
+      })
+    })
   },
   watch: {},
   methods: {
@@ -71,6 +93,8 @@ export default {
             this.is_login = false
             this.$storage.remove('token')
             this.$storage.remove('user')
+
+            this.getUserInfoFromStorage()
 
             this.$router.push('/')
           } else {
@@ -108,21 +132,20 @@ export default {
 
       })
     },
-    getUserInfo() {
+    getUserInfoFromStorage() {
       const token = this.$storage.get('token')
       const user = this.$storage.get("user")
       if (user === null || token === null ||
           user === undefined || token === undefined) {
         console.log('token不存在或过期')
+        this.is_login = false
         return
       }
 
-      this.user.username = user.username
-      this.user.id = user.id
-      this.user.avatar = user.avatar
+      this.user = user
       this.is_login = true
     },
-    handelAvatarError(){
+    handelAvatarError() {
       return true
     }
   }
