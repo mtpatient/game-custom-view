@@ -11,12 +11,20 @@ export default {
       user: {
         username: '',
         password: '',
-        repwd: ''
+        repwd: '',
+        email: '',
       },
+      NickName: '',
       activeTab: "login",
       checked: 'false',
       img: require('@/assets/bg.jpg'),
-      isActive: false,
+      isDisabled: false,
+      dialogVisible: false,
+      email: '',
+      buttonText: '获取验证码',
+      authCode: '',
+      new_password: '',
+      confirm_password: '',
     }
   },
   props: [],
@@ -97,11 +105,15 @@ export default {
         return;
       }
       if (!this.handlePwdBlur()) {
-        console.log("pwd")
+        // console.log("pwd")
         return;
       }
       if (!this.handleRePwdBlur()) {
-        console.log("repwd")
+        // console.log("repwd")
+        return;
+      }
+      if (!checkNickName(this.user.email)) {
+        this.$message.error('邮箱格式错误')
         return;
       }
       const pwd = CryptoJS.MD5(this.user.password).toString()
@@ -109,7 +121,8 @@ export default {
       this.$axios.post('/register', {
         username: this.user.username,
         password: pwd,
-        repwd: repwd
+        repwd: repwd,
+        email: this.user.email
       }).then((res) => {
         if (res.data.code === 0) {
           this.$confirm('注册成功，是否直接登录？', '注册成功', {
@@ -122,7 +135,7 @@ export default {
             location.reload()
           })
         } else {
-          this.$confirm('服务错误', res.data.msg, {
+          this.$confirm(res.data.msg, '服务错误', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'error'
@@ -149,21 +162,23 @@ export default {
 
           try {
             this.$storage.set("token", data.data.token, this.ExpireTime)
+            // console.log("token:" + data.data.token)
             this.$storage.set("user", data.data.user, this.ExpireTime)
+            // console.log("user:", JSON.stringify(data.data.user))
           } catch (e) {
-            console.log("local" + e)
+            console.log("localstorage" + e)
           }
           const role = data.data.user.role
-          // 刷新顶头导航栏
-          this.$EventBus.$emit('user_update')
           if (role === 0) {
             this.$router.push('/')
           }
           if (role === 1) {
             this.$router.push('/back-Management')
           }
+          // 刷新顶头导航栏
+          this.$EventBus.$emit('user_update')
         } else {
-          this.$confirm(data.msg, '用户名或密码错误！', {
+          this.$confirm('用户名或密码错误！', '登录失败！', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'error'
@@ -173,13 +188,83 @@ export default {
           })
         }
       }).catch()
+    },
+    getAuthCode() {
+      if (this.NickName === '') {
+        this.$message.error('请输入昵称或邮箱！')
+        return
+      }
+      // 点击后按钮需要等待60s才能重新点击
+      this.isDisabled = true
+      let count = 60
+      let timer = setInterval(() => {
+        this.buttonText = count + 's后可重新发送'
+        if (count === 0) {
+          console.log('计时结束')
+          this.isDisabled = false
+          this.buttonText = '获取验证码'
+          clearInterval(timer)
+        }
+        count--
+      }, 1000)
+
+      this.$axios.get(`/user/authCode/${encodeURIComponent(this.NickName)}`).then((res) => {
+        if (res.data.code === 0) {
+          this.$message.success('验证码已发送至邮箱！')
+        } else {
+          this.$confirm(res.data.msg, '获取验证码失败', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'error'
+          }).then(() => {
+          }).catch(() => {
+          })
+        }
+      })
+    },
+    handleResetPwd() {
+      if (this.NickName === '') {
+        this.$message.error('请输入昵称！')
+        return
+      }
+      if (this.authCode === '') {
+        this.$message.error('请输入验证码！')
+        return
+      }
+      if (this.new_password.length < 6 || this.new_password.length > 63) {
+        this.$message.error('密码长度为6-63位！')
+        return
+      }
+      if (this.confirm_password !== this.new_password) {
+        this.$message.error('两次输入的密码不一致！')
+        return
+      }
+      this.$axios.post('/user/resetPwd', {
+        username: this.NickName,
+        code: this.authCode,
+        new_pwd: CryptoJS.MD5(this.new_password).toString(),
+        confirm_pwd: CryptoJS.MD5(this.confirm_password).toString()
+      }).then((res) => {
+        if (res.data.code === 0) {
+          this.$message.success('重置密码成功！')
+          location.reload()
+        } else {
+          this.$confirm(res.data.msg, '重置密码失败, 请稍后再试！', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'error'
+          }).then().catch((res) => {
+            console.log(res)
+          })
+        }
+      })
     }
   }
 }
 </script>
 
 <template>
-  <div style="width: 100vw; height: 100vh">
+  <div style="width: 98vw; height: 100vh">
     <img class="back_img" alt="" :src="img" ref="img">
     <div class="container" ref="container"
          @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
@@ -199,6 +284,7 @@ export default {
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="login">登录</el-button>
+              <el-button type="info" @click="dialogVisible = true">找回密码</el-button>
             </el-form-item>
           </el-form>
         </el-tab-pane>
@@ -208,6 +294,9 @@ export default {
             <el-form-item label="昵称">
               <el-input v-model="user.username" style="width: 220px;"
                         @blur="handleNickNameBlur"></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱">
+              <el-input placeholder="用于找回密码" v-model="user.email" style="width: 220px;"></el-input>
             </el-form-item>
             <el-form-item label="密码">
               <el-input ref="pwd" v-model="user.password" style="width: 220px;" type="password"
@@ -224,6 +313,31 @@ export default {
         </el-tab-pane>
       </el-tabs>
     </div>
+    <el-dialog width="200" title="找回密码" :visible="dialogVisible" @close="dialogVisible = false">
+      <el-form label-positon="left">
+        <el-form-item label="昵称">
+          <el-input v-model="NickName" placeholder="请输入昵称或邮箱">
+            <el-button :disabled="isDisabled" @click="getAuthCode" slot="append" type="primary">{{
+                buttonText
+              }}
+            </el-button>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="验证码">
+          <el-input v-model="authCode">
+          </el-input>
+        </el-form-item>
+        <el-form-item label="新密码">
+          <el-input placeholder="请输入新密码" v-model="new_password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item label="确认密码">
+          <el-input v-model="confirm_password" type="password"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleResetPwd">确认</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 

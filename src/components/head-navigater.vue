@@ -45,8 +45,9 @@ export default {
     })
     // 动态更新用户信息
     this.$EventBus.$on('user_update', () => {
-      // console.log('update from api')
+
       const uid = this.$storage.get('user').id
+      // console.log('update from api', uid)
       if (uid === undefined || uid === null) {
         return
       }
@@ -62,6 +63,9 @@ export default {
         console.log(reason)
       })
     })
+  },
+  beforeDestroy() {
+    this.$EventBus.$off('user_update')
   },
   watch: {},
   methods: {

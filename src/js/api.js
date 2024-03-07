@@ -26,6 +26,11 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(response => {
         console.log("进入响应拦截器");
         //接收到响应数据并成功后的一些共有的处理，关闭loading等
+        if (response.data.code === 0) {
+            console.log('刷新过期时间')
+            storage.refresh('token', config.EXPIRE_TIME)
+            storage.refresh('user', config.EXPIRE_TIME)
+        }
         return response
     },
     error => {
@@ -46,6 +51,7 @@ instance.interceptors.response.use(response => {
                             message: '请先登录',
                             type: 'error'
                         })
+                        console.log('403, 请先登录')
                         storage.remove("token")
                         storage.remove("user")
                     })
@@ -114,7 +120,7 @@ export default {
         xhr.onload = f
         xhr.send(data)
     },
-    getCOSSignature(count){
+    getCOSSignature(count) {
         return instance.get(`/img/getSignature/${count}`)
     },
 }

@@ -73,7 +73,7 @@ export default {
           this.getUserInfo()
           this.$EventBus.$emit('user_update')
         } else {
-          this.$message.error('更新失败')
+          this.$message.error('更新失败' + res.data.msg)
         }
       })
     }

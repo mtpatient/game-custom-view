@@ -40,20 +40,14 @@ export default {
     remove(key) {
         localStorage.removeItem(key);
     },
-    // GetExpiredTime(key) {
-    //     //获取失效时间
-    //     const now = Date.now();
-    //
-    //     let source = {key: key, value: null};
-    //     /* 从缓存中取出 信息*/
-    //     source.value = JSON.parse(localStorage.getItem(source.key));
-    //
-    //     /* 判断 key 是否失效 */
-    //     if (source.value) {
-    //         /* 获取失效时间 */
-    //         let expired = source.value.expired;
-    //         source.value.expired = source.value.expired = moment(expired).diff(moment(now), 'seconds');
-    //         return source.value.expired;
-    //     }
-    // },
+    //  刷新key的过期时间
+    refresh(key, expired) {
+        const now = Date.now();
+        let source = {key: key, value: null};
+        source.value = JSON.parse(localStorage.getItem(source.key));
+        if (source.value) {
+            source.value.expired = now + (1000 * 60 * expired);
+            localStorage.setItem(source.key, JSON.stringify(source.value));
+        }
+    },
 }
