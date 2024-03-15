@@ -42,7 +42,7 @@ export default {
         this.$storage.remove('token')
         this.$storage.remove('user')
         console.log('未登录')
-        this.refreshBar()
+        // this.refreshBar()
       }
     }).catch(() => {
 

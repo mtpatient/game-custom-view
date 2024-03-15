@@ -10,7 +10,7 @@ export default [
             {
                 path: 'post',
                 name: 'user-post',
-                component: () => import('@/components/user/postList.vue'),
+                component: () => import('@/view/user/postList.vue'),
                 meta: {
                     title: '帖子 - 个人中心'
                 },
@@ -18,7 +18,7 @@ export default [
             {
                 path: 'comment',
                 name: 'user-comment',
-                component: () => import('@/components/user/commentList.vue'),
+                component: () => import('@/view/user/commentList.vue'),
                 meta: {
                     title: '评论 - 个人中心'
                 },
@@ -26,7 +26,7 @@ export default [
             {
                 path: 'collect',
                 name: 'user-collect',
-                component: () => import('@/components/user/collectList.vue'),
+                component: () => import('@/view/user/collectList.vue'),
                 meta: {
                     title: '收藏 - 个人中心'
                 },
@@ -34,7 +34,7 @@ export default [
             {
                 path: 'follow',
                 name: 'user-follow',
-                component: () => import('@/components/user/followList.vue'),
+                component: () => import('@/view/user/followList.vue'),
                 meta: {
                     title: '关注 - 个人中心'
                 },
@@ -42,7 +42,7 @@ export default [
             {
                 path: 'fans',
                 name: 'user-fans',
-                component: () => import('@/components/user/fansList.vue'),
+                component: () => import('@/view/user/fansList.vue'),
                 meta: {
                     title: '粉丝 - 个人中心'
                 },
@@ -50,7 +50,7 @@ export default [
             {
                 path: 'edit',
                 name: 'user-edit',
-                component: () => import('@/components/user/user-update.vue'),
+                component: () => import('@/view/user/user-update.vue'),
                 meta: {
                     title: '编辑资料 - 个人中心'
                 },
@@ -58,7 +58,7 @@ export default [
             {
                 path: 'feedback',
                 name: 'user-feedback',
-                component: () => import('@/components/user/user-feedback.vue'),
+                component: () => import('@/view/user/user-feedback.vue'),
                 meta: {
                     title: '意见反馈 - 个人中心'
                 },
@@ -66,7 +66,7 @@ export default [
             {
                 path: 'password',
                 name: 'user-password',
-                component:()=>import('@/components/user/user-password.vue'),
+                component:()=>import('@/view/user/user-password.vue'),
                 meta: {
                     title: '修改密码 - 个人中心'
                 },

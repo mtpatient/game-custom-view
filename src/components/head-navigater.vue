@@ -19,9 +19,9 @@ export default {
         {
           label: '点赞', value: 2, count: '0'
         },
-        {
-          label: '@我', value: 3, count: '0'
-        }
+        // {
+        //   label: '@我', value: 3, count: '0'
+        // }
       ],
       is_login: false,
       user: {

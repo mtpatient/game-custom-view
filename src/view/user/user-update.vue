@@ -104,9 +104,9 @@ export default {
           </el-form-item>
           <el-form-item label="性别">
             <el-radio-group v-model="user.sex">
-              <el-radio :label="0"><i class="el-icon-female" style="color: red"></i> 女</el-radio>
+              <el-radio :label="2"><i class="el-icon-female" style="color: red"></i> 女</el-radio>
               <el-radio :label="1"><i class="el-icon-male" style="color: dodgerblue"></i> 男</el-radio>
-              <el-radio :label="2">保密</el-radio>
+              <el-radio :label="3">保密</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="签名">

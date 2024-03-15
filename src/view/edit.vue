@@ -67,7 +67,8 @@ export default {
         content: '',
         status: 0,
         section: 0,
-      }
+      },
+      role: this.$storage.get('user').role,
     }
   },
   created() {
@@ -251,9 +252,11 @@ export default {
         <div class="postOption_box">
           <span class="mustSelect" style="font-size: 18px">所属板块 : </span>
           <el-radio-group v-model="cur_section">
-            <el-radio-button v-for="s in sections"
-                             :key="s.id"
-                             :label="s.name"></el-radio-button>
+            <template v-for="s in sections">
+              <el-radio-button v-if="role >= s.role"
+                               :key="s.id"
+                               :label="s.name"></el-radio-button>
+            </template>
           </el-radio-group>
         </div>
         <div class="postOption_box" style="font-size: 18px">

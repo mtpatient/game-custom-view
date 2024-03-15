@@ -277,10 +277,11 @@ export default {
             <el-form-item label="昵称">
               <el-input v-model="user.username"
                         style="width: 220px;"
+                        clearable
                         placeholder="请输入昵称或邮箱"></el-input>
             </el-form-item>
             <el-form-item label="密码">
-              <el-input v-model="user.password" style="width: 220px;" type="password"></el-input>
+              <el-input clearable show-password v-model="user.password" style="width: 220px;" type="password"></el-input>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="login">登录</el-button>
@@ -292,18 +293,18 @@ export default {
           <span slot="label">注册</span>
           <el-form class="form" label-width="80px" :model="user">
             <el-form-item label="昵称">
-              <el-input v-model="user.username" style="width: 220px;"
+              <el-input clearable v-model="user.username" style="width: 220px;"
                         @blur="handleNickNameBlur"></el-input>
             </el-form-item>
             <el-form-item label="邮箱">
-              <el-input placeholder="用于找回密码" v-model="user.email" style="width: 220px;"></el-input>
+              <el-input clearable placeholder="用于找回密码" v-model="user.email" style="width: 220px;"></el-input>
             </el-form-item>
             <el-form-item label="密码">
-              <el-input ref="pwd" v-model="user.password" style="width: 220px;" type="password"
+              <el-input clearable show-password ref="pwd" v-model="user.password" style="width: 220px;" type="password"
                         @blur="handlePwdBlur"></el-input>
             </el-form-item>
             <el-form-item label="确认密码">
-              <el-input ref="repwd" v-model="user.repwd" style="width: 220px;" type="password"
+              <el-input clearable show-password ref="repwd" v-model="user.repwd" style="width: 220px;" type="password"
                         @blur="handleRePwdBlur"></el-input>
             </el-form-item>
             <el-form-item>

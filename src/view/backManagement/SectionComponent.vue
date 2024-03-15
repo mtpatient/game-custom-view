@@ -11,7 +11,8 @@ export default {
         id: '',
         name: '',
         icon: require('@/assets/upload.png'),
-        Dc: ''
+        Dc: '',
+        role: 2,
       },
       sections: []
     }
@@ -27,11 +28,19 @@ export default {
       this.form.name = row.name
       this.form.Dc = row.dc
       this.form.icon = row.icon
+      this.form.role = row.role
     },
     handleDelete(index, row) {
       console.log(index, row);
     },
     handleAdd() {
+      // 初始化表单
+      this.form.icon = require('@/assets/upload.png')
+      this.form.id = ''
+      this.form.name = ''
+      this.form.Dc = ''
+      this.form.role = 2
+
       this.dialog_title = '添 加 板 块'
       this.dialogFormVisible = true
     },
@@ -71,6 +80,10 @@ export default {
       if (this.form.name === '') {
         this.$message.error('板块名不能为空!')
         return
+      }
+      if (this.form.role === 2) {
+        this.$message.error('请选择板块权限!')
+        return;
       }
       if (this.form.icon === require('@/assets/upload.png')) {
         this.$message.error('需要上传图标！')
@@ -147,6 +160,13 @@ export default {
         </template>
       </el-table-column>
       <el-table-column
+          label="官方板块"
+          width="180">
+        <template slot-scope="scope">
+          {{ scope.row.role === 1 ? '是' : '否' }}
+        </template>
+      </el-table-column>
+      <el-table-column
           label="DC"
           width="180" prop="dc">
       </el-table-column>
@@ -180,6 +200,12 @@ export default {
         </el-form-item>
         <el-form-item label="板块描述（选填）">
           <el-input v-model="form.Dc"></el-input>
+        </el-form-item>
+        <el-form-item label="官方板块（必选）">
+          <el-radio-group v-model="form.role">
+            <el-radio :label="1">是</el-radio>
+            <el-radio :label="0">否</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="图标（必填）">
           <el-image lazy @click="handleImgUpload" class="form-img" :src="form.icon" fit="contain">

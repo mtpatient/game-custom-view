@@ -15,6 +15,7 @@ export default {
         follow_count: 0,
         role: 0,
       },
+      isFollow: false,
     }
   },
   computed: {
@@ -48,11 +49,47 @@ export default {
       }).catch((reason) => {
         console.log(reason)
       })
+
+      this.$axios.get(`/follow/isFollow/${uid}`).then(res => {
+        if (res.data.code === 0) {
+          this.isFollow = res.data.data.isFollow
+        } else {
+          this.$message.error('服务错误')
+        }
+      }).catch((reason) => {
+        console.log(reason)
+      })
     },
     userUpdate() {
       this.getUserInfo()
       this.$storage.set('user', this.user, this.ExpireTime)
-    }
+    },
+    handleFollow() {
+      this.isFollow = !this.isFollow
+      if (this.isFollow) {
+        this.$axios.post('/user/follow', {
+          id: this.user.id,
+          operate: 1,
+        }).then(res => {
+          if (res.data.code === 0) {
+            this.$message.success('关注成功！')
+          } else {
+            this.$message.error('关注失败！')
+          }
+        })
+      } else {
+        this.$axios.post('/user/follow', {
+          id: this.user.id,
+          operate: 2,
+        }).then(res => {
+          if (res.data.code === 0) {
+            this.$message.success('取消关注！')
+          } else {
+            this.$message.error('取消关注失败！')
+          }
+        })
+      }
+    },
   },
   created() {
     this.getUserInfo()
@@ -92,6 +129,9 @@ export default {
     this.$EventBus.$on('user_update', () => {
       this.userUpdate()
     })
+  },
+  beforeDestroy() {
+    this.$EventBus.$off('user_update')
   }
 }
 </script>
@@ -113,8 +153,10 @@ export default {
                 </el-image>
               </div>
               <div class="user-info-data">
-                <div>
+                <div style="display: flex">
                   <span class="user-name">{{ user.username }}</span>
+                  <span v-if="user.sex === 2"><i class="el-icon-female icon" style="color: red"></i></span>
+                  <span v-if="user.sex === 1"><i class="el-icon-male icon" style="color: dodgerblue"></i></span>
                 </div>
                 <div><span
                     class="user-id">{{ 'ID：' + (10000000 + user.id) + (user.role === 1 ? '  |  管理员' : '') }}</span>
@@ -133,8 +175,8 @@ export default {
                 <p class="signature">{{ user.signature }}</p>
                 <div class="info-footer">
                   <!--                  TODO 处理按钮事件-->
-                  <el-button type="primary" v-if="!OnSelf">关注</el-button>
-                  <el-button v-if="!OnSelf">已关注</el-button>
+                  <el-button @click="handleFollow" type="primary" v-if="!OnSelf && !this.isFollow">关注</el-button>
+                  <el-button @click="handleFollow" v-if="!OnSelf && this.isFollow">已关注</el-button>
                   <el-button @click="$refs.edit.click()" type="info" v-if="OnSelf">编辑资料</el-button>
                 </div>
               </div>
@@ -393,5 +435,9 @@ export default {
   color: #1E7DFA;
   background: #f7f8fa;
   border-radius: 10px;
+}
+
+.icon {
+  margin-left: 10px;
 }
 </style>

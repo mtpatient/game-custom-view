@@ -102,3 +102,31 @@ export function handleImgCompress(files) {
         }
     });
 }
+
+export function CountNums(v) {
+    if (v < 1000) {
+        return v
+    }
+    if (v > 1000 && v < 10000) {
+        return (v / 1000).toFixed(2) + 'k'
+    }
+
+    return (v / 10000).toFixed(2) + 'w'
+}
+
+// 防抖函数
+export function debounce(before, after, wait) {
+    /*option说明： before [事件触发时立即执行的函数];
+                   after [回调函数];
+                   wait [回调触发延迟时间ms]
+    */
+    var timer
+    return function () {
+        before && before();
+        timer && clearTimeout(timer);
+        timer = setTimeout(function () {
+            after && after();
+            timer = null;
+        }, wait);
+    }
+}
