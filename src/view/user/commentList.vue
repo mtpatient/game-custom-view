@@ -1,6 +1,11 @@
 <script>
+import CommentShow from "@/components/CommentShow.vue";
+
 export default {
   name: "commentList",
+  components: {
+    Comment: CommentShow
+  },
   data() {
     return {
       comments: []
@@ -15,6 +20,7 @@ export default {
       <h2 class="title">评论</h2>
     </div>
     <div class="content">
+      <Comment></Comment>
       <div v-if="!comments.length" class="no-content">
         <el-image style="margin-bottom: 24px;height: 168px;width: 195px"
                   :src="require('@/assets/no-content.png')"></el-image>

@@ -103,16 +103,6 @@ export function handleImgCompress(files) {
     });
 }
 
-export function CountNums(v) {
-    if (v < 1000) {
-        return v
-    }
-    if (v > 1000 && v < 10000) {
-        return (v / 1000).toFixed(2) + 'k'
-    }
-
-    return (v / 10000).toFixed(2) + 'w'
-}
 
 // 防抖函数
 export function debounce(before, after, wait) {

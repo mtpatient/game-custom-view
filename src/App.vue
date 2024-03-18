@@ -1,8 +1,8 @@
 <template>
   <div>
     <Head_navigate :key="barKey"></Head_navigate>
-    <!--    <router-view @user_update="refreshBar" class="router_view"/>-->
-    <router-view class="router_view"></router-view>
+    <router-view @user_update="refreshBar" class="router_view"/>
+    <!--    <router-view class="router_view"></router-view>-->
     <div class="goTop">
       <el-backtop>
         <!--          target=".page-component__scroll .el-scrollbar__wrap">-->
@@ -26,9 +26,9 @@ export default {
   },
   components: {Head_navigate},
   methods: {
-    // refreshBar() {
-    //   this.barKey += 1
-    // },
+    refreshBar() {
+      this.barKey += 1
+    },
   },
   beforeCreate() {
 
@@ -42,7 +42,7 @@ export default {
         this.$storage.remove('token')
         this.$storage.remove('user')
         console.log('未登录')
-        // this.refreshBar()
+        this.refreshBar()
       }
     }).catch(() => {
 

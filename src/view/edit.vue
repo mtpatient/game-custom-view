@@ -62,16 +62,25 @@ export default {
       cur_section: '',
       isPrivate: false,
       post: {
+        id: 0,
+        title: "",
         user_id: 0,
-        title: '',
-        content: '',
-        status: 0,
+        content: "",
+        created_time: '',
         section: 0,
+        view_count: 0,
+        like_count: 0,
+        collect_count: 0,
+        top_self: 0,
+        top_section: 0,
+        status: 0, //0：正常，1：禁用，2：仅自己可见，3：申请恢复
       },
       role: this.$storage.get('user').role,
+      update: false,
     }
   },
   created() {
+    // TODO 处理编辑文章
     this.$axios.get('/section/all').then(res => {
       if (res.data.code === 0) {
         this.sections = res.data.data.sections
@@ -81,6 +90,28 @@ export default {
     }).catch(err => {
       console.log(err)
     })
+
+    if (this.$route.query.id !== null && this.$route.query.id !== undefined) {
+      this.update = true
+      this.$axios.get(`/post/${this.$route.query.id}`).then(res => {
+        if (res.data.code === 0) {
+          const post = res.data.data.post
+          this.post = post
+          if (post.status === 2) {
+            this.isPrivate = true
+          }
+          this.$axios.get(`/section/${post.section}`).then(res => {
+            if (res.data.code === 0) {
+              this.cur_section = res.data.data.section.name
+            }
+          }).catch(err => {
+            console.log(err)
+          })
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    }
   },
   mounted() {
     addQuillTitle()
@@ -133,20 +164,37 @@ export default {
           imgList.push(src)
         }
       })
-      this.$axios.post('/post', {
-        "post": this.post,
-        "images": imgList
-      }).then(res => {
-        if (res.data.code === 0) {
-          this.$message.success('发布成功!')
-          this.$router.push('/')
-        } else {
-          this.$message.error('服务错误!')
-          location.reload()
-        }
-      }).catch(() => {
-
-      })
+      if (this.update) {
+        this.$axios.put('/post', {
+          "post": this.post,
+          "images": imgList
+        }).then(res => {
+          if (res.data.code === 0) {
+            this.$message.success('发布成功!')
+            this.$router.push('/post-detail/' + this.post.id)
+          } else {
+            this.$message.error('服务错误!')
+            location.reload()
+          }
+        }).catch(err => {
+          console.log(err)
+        })
+      } else {
+        this.$axios.post('/post', {
+          "post": this.post,
+          "images": imgList
+        }).then(res => {
+          if (res.data.code === 0) {
+            this.$message.success('发布成功!')
+            this.$router.push('/post-detail/' + res.data.data.id)
+          } else {
+            this.$message.error('服务错误!')
+            location.reload()
+          }
+        }).catch(err => {
+          console.log(err)
+        })
+      }
     },
     handleImage() {
       // this.isLoading = true
@@ -272,12 +320,12 @@ export default {
   </div>
 </template>
 
-<style>
+<style scoped>
 #edit {
   width: 99%;
   min-width: 1200px;
   background-color: #f6f7f8;
-  height: auto;
+  //height: auto;
   min-height: 950px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -287,7 +335,7 @@ export default {
   width: 900px;
   background-color: white;
   margin: 10px auto;
-  height: 100%;
+  //height: 100%;
   min-height: 700px;
   display: flex;
   //align-items: center;
@@ -318,16 +366,6 @@ export default {
   margin-right: 6px;
 }
 
-#editor {
-  height: 680px;
-}
-
-#editor-box {
-  //min-height: 430px;
-  height: auto;
-  position: relative;
-}
-
 .postOption_box {
   position: relative;
   font-size: 20px;
@@ -342,14 +380,25 @@ export default {
   //margin-right: 4px;
 }
 
-.ql-editor {
+#editor-box {
+  min-height: 430px;
+  height: auto;
+  position: relative;
+}
+
+#editor {
+  //height: 680px;
+}
+
+
+#editor-box >>> .ql-editor {
   margin-top: 10px;
-  min-height: 400px;
+  height: 680px;
   //border-radius: 10px;
-  border-top: 1px solid;
+  border-top: 1px solid #bfbfbf;
   box-sizing: border-box;
   line-height: 1.42;
-  height: 100%;
+  //height: 100%;
   outline: none;
   overflow-y: auto;
   padding: 12px 15px;
@@ -360,28 +409,23 @@ export default {
   white-space: pre-wrap;
   word-wrap: break-word;
   font-size: 15px;
+  position: relative;
 }
 
-.ql-toolbar {
+#editor-box >>> .ql-toolbar {
   position: absolute;
   right: -44px;
   fill: white;
-  height: 680px;
-  //z-index: 100;
   margin: 0 auto;
-  //left: 50%;
-  //transform: translateX(-50%);
-  //width: auto;
+  height: 680px;
   background-color: white;
   border-radius: 10px;
-  //max-width: 900px;
-  //min-width: 900px;
   width: 40px;
   transition-property: top;
   transition-duration: 0.5s;
 }
 
-.editor-image-container {
+#editor-box >>> .editor-image-container {
   font-family: sans-serif;
   word-wrap: break-word;
   -webkit-user-modify: read-only;
@@ -397,11 +441,11 @@ export default {
   cursor: default;
 }
 
-.editor-img {
+#editor-box >>> .editor-img {
   font-family: sans-serif;
   word-wrap: break-word;
   cursor: default;
-  //aspect-ratio: auto 5000 / 2700;
+  aspect-ratio: auto 5000 / 2700;
   display: block;
   max-width: 100%;
   max-height: 400px;

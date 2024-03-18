@@ -27,7 +27,9 @@ export default {
       confirm_password: '',
     }
   },
-  props: [],
+  props: [
+
+  ],
   beforeCreate() {
     this.$axios.get('/user/is_login').then((res) => {
       const data = res.data.data
@@ -168,15 +170,12 @@ export default {
           } catch (e) {
             console.log("localstorage" + e)
           }
-          const role = data.data.user.role
-          if (role === 0) {
-            this.$router.push('/')
-          }
-          if (role === 1) {
-            this.$router.push('/back-Management')
-          }
+
+          this.$router.push('/')
+
           // 刷新顶头导航栏
           this.$EventBus.$emit('user_update')
+          this.$emit("user_update")
         } else {
           this.$confirm('用户名或密码错误！', '登录失败！', {
             confirmButtonText: '确定',
@@ -281,7 +280,8 @@ export default {
                         placeholder="请输入昵称或邮箱"></el-input>
             </el-form-item>
             <el-form-item label="密码">
-              <el-input clearable show-password v-model="user.password" style="width: 220px;" type="password"></el-input>
+              <el-input clearable show-password v-model="user.password" style="width: 220px;"
+                        type="password"></el-input>
             </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="login">登录</el-button>

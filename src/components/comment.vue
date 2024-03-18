@@ -33,10 +33,14 @@ export default {
     parentId: {
       type: [String, Number],
       required: true,
+    },
+    commentId:{
+      type: [String, Number],
+      required: true,
     }
   },
   created() {
-    console.log(this.isFloor, this.postId, this.toUserId, this.parentId)
+    console.log(this.isFloor, this.postId, this.toUserId, this.parentId, this.commentId)
   },
   mounted() {
   },
@@ -60,7 +64,8 @@ export default {
         post_id: this.postId,
         to_user_id: this.toUserId,
         parent_id: this.parentId,
-        content: this.comment
+        content: this.comment,
+        comment_id: this.commentId
       }).then(res => {
         if (res.data.code === 0) {
           this.$emit('refreshComment')

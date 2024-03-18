@@ -50,15 +50,18 @@ export default {
         console.log(reason)
       })
 
-      this.$axios.get(`/follow/isFollow/${uid}`).then(res => {
-        if (res.data.code === 0) {
-          this.isFollow = res.data.data.isFollow
-        } else {
-          this.$message.error('服务错误')
-        }
-      }).catch((reason) => {
-        console.log(reason)
-      })
+      const user = this.$storage.get('user')
+      if (user !== null && user !== undefined) {
+        this.$axios.get(`/follow/isFollow/${uid}`).then(res => {
+          if (res.data.code === 0) {
+            this.isFollow = res.data.data.isFollow
+          } else {
+            this.$message.error('服务错误')
+          }
+        }).catch((reason) => {
+          console.log(reason)
+        })
+      }
     },
     userUpdate() {
       this.getUserInfo()
@@ -90,6 +93,13 @@ export default {
         })
       }
     },
+    handleChange(e, v) {
+      if (e === 'follow') {
+        this.user.follow_count += v
+      } else if (e === 'like') {
+        this.user.like_count += v
+      }
+    }
   },
   created() {
     this.getUserInfo()
@@ -99,7 +109,7 @@ export default {
       const li_id = this.$route.name.split('-')[1]
       document.querySelector('#' + li_id).classList.add('active')
 
-      let lis = document.querySelectorAll('.flex-vertical-center')
+      let lis = document.querySelectorAll('.aside-item li')
       lis.forEach(li => {
         li.addEventListener('click', () => {
           let v = li.getAttribute('value')
@@ -109,7 +119,7 @@ export default {
             })
             window.open(page.href, '_blank')
             return
-          } else {
+          } else if (v !== null) {
             this.$router.push({
               path: '/person-center/' + v,
               query: {id: this.user.id}
@@ -132,7 +142,7 @@ export default {
   },
   beforeDestroy() {
     this.$EventBus.$off('user_update')
-  }
+  },
 }
 </script>
 
@@ -162,10 +172,10 @@ export default {
                     class="user-id">{{ 'ID：' + (10000000 + user.id) + (user.role === 1 ? '  |  管理员' : '') }}</span>
                 </div>
                 <div class="relation-section">
-                  <span class="item pointer"> 关注：
+                  <span class="item pointer" @click="$refs.follow.click()"> 关注：
                     <span class="number">{{ CountNums(user.follow_count) }}</span>
                   </span>
-                  <span class="item pointer"> 粉丝：
+                  <span class="item pointer" @click="$refs.fans.click()"> 粉丝：
                     <span class="number">{{ CountNums(user.fans_count) }}</span>
                   </span>
                   <span class="item pointer"> 获赞：
@@ -198,10 +208,10 @@ export default {
                     <li class="flex-vertical-center" value="collect" id="collect">
                       <i class="el-icon-star-off aside-icon"></i>
                       <span>收藏</span></li>
-                    <li class="flex-vertical-center" value="follow" id="follow">
+                    <li ref="follow" class="flex-vertical-center" value="follow" id="follow">
                       <i class="el-icon-paperclip aside-icon"></i>
                       <span>关注</span></li>
-                    <li class="flex-vertical-center" value="fans" id="fans">
+                    <li ref="fans" class="flex-vertical-center" value="fans" id="fans">
                       <i class="el-icon-attract aside-icon"></i>
                       <span>粉丝</span></li>
                   </ul>
@@ -226,7 +236,7 @@ export default {
               </el-aside>
               <el-main class="el-main">
                 <div class="main-content-box">
-                  <router-view></router-view>
+                  <router-view @change="handleChange"></router-view>
                 </div>
               </el-main>
             </el-container>
@@ -374,6 +384,7 @@ export default {
 
 .content-section {
   margin-top: 10px;
+  overflow: auto;
 }
 
 .aside-item {

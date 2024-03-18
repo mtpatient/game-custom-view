@@ -19,7 +19,8 @@ export default {
         view_count: 0,
         like_count: 0,
         collect_count: 0,
-        create_time: ''
+        create_time: '',
+        update_time: '',
       },
       user: {
         id: 1,
@@ -58,6 +59,7 @@ export default {
       loading: false,
       end: false,
       scroller: null,
+      commentId: 0,
     }
   },
   computed: {
@@ -99,12 +101,18 @@ export default {
         this.$message.error('帖子不存在')
       }
     }).catch(() => {
-
+      console.log('获取帖子失败')
     })
     this.getCommentList()
+
   },
   mounted() {
     this.$nextTick(() => {
+      // TODO 滚动到评论区
+      if (this.$route.query.comment) {
+        console.log(this.$route.query.comment)
+        this.scrollToSection()
+      }
       this.scroller = debounce(() => {
         if (!this.end) {
           this.loading = true
@@ -114,6 +122,7 @@ export default {
       }, this.handleScroll, 300)
       window.addEventListener('scroll', this.scroller)
     })
+
   },
   beforeDestroy() {
     window.removeEventListener('scroll', this.scroller)
@@ -181,6 +190,7 @@ export default {
           if (res.data.code === 0) {
             this.$message.success('点赞成功！')
             this.post.like_count++
+            this.user.like_count++
           } else {
             this.$message.error('点赞失败！')
             this.isLike = !this.isLike
@@ -197,6 +207,7 @@ export default {
           if (res.data.code === 0) {
             this.$message.success('取消点赞！')
             this.post.like_count--
+            this.user.like_count--
           } else {
             this.$message.error('取消点赞失败！')
             this.isLike = !this.isLike
@@ -251,11 +262,25 @@ export default {
       })
       window.open(page.href, '_blank')
     },
+    ToFollow(id) {
+      let page = this.$router.resolve({
+        path: '/person-center/follow',
+        query: {id: id}
+      })
+      window.open(page.href, '_blank')
+    },
+    Tofans(id) {
+      let page = this.$router.resolve({
+        path: '/person-center/fans',
+        query: {id: id}
+      })
+      window.open(page.href, '_blank')
+    },
     scrollToSection() {
-      const s = document.getElementById('comment-add')
+      const s = document.getElementsByClassName('comment-detail')
 
-      if (s) {
-        s.scrollIntoView({
+      if (s[0]) {
+        s[0].scrollIntoView({
           behavior: 'smooth'
         })
       }
@@ -279,6 +304,9 @@ export default {
         if (res.data.code === 0) {
           if (res.data.data.comments != null) {
             this.comments.push(...res.data.data.comments)
+            if (res.data.data.comments.length < 20) {
+              this.end = true
+            }
           } else {
             this.end = true
           }
@@ -463,7 +491,11 @@ export default {
               <div class="post-detail">
                 <div class="post-title-container">
                   <div class="post-title">{{ post.title }}</div>
-                  <div class="post-create-time flex">{{ '文章发布时间 ' + post.create_time }}</div>
+                  <div class="post-create-time flex">
+                    {{
+                      (post.status === 2 ? '仅自己可见 | ' : '') + '发布时间 ' + post.create_time + ' | 更新时间 ' + post.update_time
+                    }}
+                  </div>
                 </div>
                 <div class="post-content">
                   <div class="article" v-html="post.content">
@@ -486,11 +518,11 @@ export default {
                     </li>
                   </ul>
                   <ul class="dropdown-list">
-                    <li @click="changeSort('default')" ref="default-li" class="active">
-                      <button class="btn">默认</button>
+                    <li ref="default-li" class="active">
+                      <button @click="changeSort('default')" class="btn">默认</button>
                     </li>
-                    <li @click="changeSort('new')" ref="new-li">
-                      <button class="btn">最新</button>
+                    <li ref="new-li">
+                      <button @click="changeSort('new')" class="btn">最新</button>
                     </li>
                   </ul>
                 </div>
@@ -502,6 +534,7 @@ export default {
                           :is-floor="true"
                           :to-user-id="post.user_id"
                           :parent-id="0"
+                          :comment-id="0"
                           :post-id="post.id"></comment>
                     </div>
                   </div>
@@ -539,6 +572,7 @@ export default {
                                      :to-user-id="c.user_id"
                                      :parent-id="c.id"
                                      :post-id="c.post_id"
+                                     :comment-id="c.id"
                                      v-if="showReply && replyId === c.id"></comment>
                             <div class="comment-item-footer flex">
                               <div class="comment-item-time">
@@ -594,6 +628,7 @@ export default {
                                     :to-user-id="ch.user_id"
                                     :parent-id="c.id"
                                     :post-id="c.post_id"
+                                    :comment-id="ch.id"
                                     v-if="showReply && replyId === ch.id"></comment>
                                 <div class="comment-in-item-footer flex">
                                   <div class="comment-in-item-time">
@@ -654,7 +689,6 @@ export default {
             <div class="aside-box-section">
               <div class="aside-box-userInfo flex">
                 <div class="info-avatar">
-                  <!--                  TODO 添加点击事件-->
                   <el-image @click="ToUserDetail(user.id)" :src="user.avatar">
                     <div slot="error" class="image-slot">
                       <el-image @click="ToUserDetail(user.id)"
@@ -671,11 +705,11 @@ export default {
                 </div>
               </div>
               <div class="aside-box-userdata">
-                <span class="item">
+                <span class="item" @click="ToFollow(user.id)">
                   <p>关注</p>
                   <span class="number">{{ CountNums(user.follow_count) }}</span>
                 </span>
-                <span class="item">
+                <span class="item" @click="Tofans(user.id)">
                   <p>粉丝</p>
                   <span class="number">{{ CountNums(user.fans_count) }}</span>
                 </span>
@@ -733,6 +767,7 @@ export default {
                 :to-user-id="commentDetail.user_id"
                 :parent-id="commentDetail.id"
                 :post-id="commentDetail.post_id"
+                :comment-id="commentDetail.id"
                 v-if="showReply && replyId === commentDetail.id"></comment>
             <div class="comment-item-footer flex">
               <div class="comment-item-time">
@@ -797,6 +832,7 @@ export default {
                   :to-user-id="ch.user_id"
                   :parent-id="commentDetail.id"
                   :post-id="commentDetail.post_id"
+                  :comment-id="ch.id"
                   v-if="showReply && replyId === ch.id"></comment>
               <div class="comment-item-footer flex">
                 <div class="comment-item-time">
