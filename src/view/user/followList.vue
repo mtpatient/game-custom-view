@@ -23,13 +23,11 @@ export default {
           id: id
         }
       })
-
       window.open(page.href, '_blank')
     },
     handleFollow(f) {
       // console.log(f)
       if (f.is_follow === 0) {
-
         this.$axios.post(`/user/follow`, {
           id: f.id,
           operate: 1,
@@ -224,4 +222,5 @@ ul {
   color: #aeb6c2;
   max-width: 414px;
 }
+
 </style>

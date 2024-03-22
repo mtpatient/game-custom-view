@@ -77,6 +77,7 @@ export default {
       },
       role: this.$storage.get('user').role,
       update: false,
+      backImg: require("../assets/pns-bg-GELQYdT2.png")
     }
   },
   created() {
@@ -277,6 +278,7 @@ export default {
 
 <template>
   <div id="edit">
+    <el-image class="back_img" :src="backImg"></el-image>
     <div id="editor_container">
       <div id="editor_container_text">
         <div id="title-box">
@@ -324,7 +326,7 @@ export default {
 #edit {
   width: 99%;
   min-width: 1200px;
-  background-color: #f6f7f8;
+  //background-color: #f6f7f8;
   //height: auto;
   min-height: 950px;
   overflow-y: auto;
@@ -480,6 +482,21 @@ export default {
 .ql-editor > p > img {
   background-color: gray !important;
   //text-align: center;
+}
+
+.back_img {
+  position: fixed;
+  top: 60px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  height: calc(100vh - 60px);
+  background-color: #f7f8fa;
+  object-fit: cover;
+  z-index: -1;
+  background-position: center;
+  background-size: cover;
 }
 
 /*

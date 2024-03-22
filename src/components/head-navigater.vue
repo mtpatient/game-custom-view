@@ -4,20 +4,20 @@ export default {
   data() {
     return {
       searchText: '',
-      notice: 'new',
+      // notice: 'new',
       // avatar_ulr: 'https://prod-alicdn-community.kurobbs.com/headCode/RoleHeadR4Bianka.png',
       default_avatar: this.Default_Avatar,
       notices: [
         //   0：网站通知；1：回复我的；2：给我点赞的；3：@我的
         // TODO 获取通知消息并赋值
         {
-          label: '通知', value: 0, count: '0'
+          label: '通知', value: 0, count: 0
         },
         {
-          label: '评论', value: 1, count: '0'
+          label: '评论', value: 1, count: 0
         },
         {
-          label: '点赞', value: 2, count: '0'
+          label: '点赞', value: 2, count: 0
         },
         // {
         //   label: '@我', value: 3, count: '0'
@@ -29,15 +29,20 @@ export default {
         username: '',
         avatar: ''
       },
-      logo: require('@/assets/logo.png')
+      logo: require('@/assets/logo.png'),
+      Search: "露西亚",
     }
   },
   beforeCreate() {
   },
   created() {
     this.getUserInfoFromStorage()
+
+    setInterval(this.getNewsCount, 1000 * 60)
   },
   mounted() {
+    // TODO 获取消息数
+    this.getNewsCount()
     // 解决localstorage同步问题
     window.addEventListener('storage', () => {
       // console.log('update from storage')
@@ -45,7 +50,6 @@ export default {
     })
     // 动态更新用户信息
     this.$EventBus.$on('user_update', () => {
-
       const uid = this.$storage.get('user').id
       // console.log('update from api', uid)
       if (uid === undefined || uid === null) {
@@ -63,20 +67,71 @@ export default {
         console.log(reason)
       })
     })
+
+    // 监听消息变化
+    this.$EventBus.$on('read', () => {
+      this.getNewsCount()
+    })
   },
   beforeDestroy() {
     this.$EventBus.$off('user_update')
+    this.$EventBus.$off('read')
   },
   watch: {},
   methods: {
-    // TODO 处理搜索
+    // 获取消息数
+    getNewsCount() {
+      this.$axios.get('/message/news').then((res) => {
+        if (res.data.code === 0) {
+          this.notices[0].count = res.data.data.news[0]
+          this.notices[1].count = res.data.data.news[1]
+          this.notices[2].count = res.data.data.news[2]
+        } else {
+          this.$message.error('服务错误')
+        }
+      }).catch((reason) => {
+        console.log(reason)
+      })
+    },
+    //  处理搜索
     handleSearch() {
-
-    }
-    ,
+      console.log(this.$route.name)
+      if (this.$route.name !== 'search') {
+        const page = this.$router.resolve({
+          path: '/search',
+          query: {
+            q: this.searchText === '' ? this.Search : this.searchText
+          }
+        })
+        window.open(page.href, '_blank')
+      } else {
+        this.$router.push({
+          path: '/search',
+          query: {
+            q: this.searchText === '' ? this.Search : this.searchText
+          }
+        })
+        location.reload()
+      }
+    },
     handleNotice(value) {
-      // TODO 进入通知页面
       console.log(value)
+      let page = null
+      if (value.value === 0) {
+        page = this.$router.resolve({
+          path: '/message/notice'
+        })
+      } else if (value.value === 1) {
+        page = this.$router.resolve({
+          path: '/message/comment'
+        })
+      } else if (value.value === 2) {
+        page = this.$router.resolve({
+          path: '/message/like'
+        })
+      }
+      value.count = 0
+      window.open(page.href, '_blank')
     }
     ,
     handleToUserDetail() {
@@ -152,6 +207,16 @@ export default {
     handelAvatarError() {
       return true
     }
+  },
+  computed: {
+    notice_count() {
+      let nums = 0
+      this.notices.forEach((item) => {
+        nums += item.count
+      })
+
+      return nums
+    }
   }
 }
 </script>
@@ -164,17 +229,17 @@ export default {
          alt="战双帕弥什">
     <!--    搜索框-->
     <div class="search_container">
-      <el-popover
-          placement="bottom"
-          width="400"
-          trigger="click">
-        <!--        TODO 搜索排行, 近期搜索-->
-        <el-input slot="reference" placeholder="Search" v-model="searchText" class="search">
-          <i slot="suffix"
-             class="el-icon-search handleSearch"
-             @click="handleSearch"></i>
-        </el-input>
-      </el-popover>
+      <!--      <el-popover-->
+      <!--          placement="bottom"-->
+      <!--          width="400"-->
+      <!--          trigger="click">-->
+      <!--        TODO 优化搜索 可回车触发-->
+      <el-input maxlength="28" slot="reference" :placeholder="Search" v-model="searchText" class="search">
+        <i slot="suffix"
+           class="el-icon-search handleSearch"
+           @click="handleSearch"></i>
+      </el-input>
+      <!--      </el-popover>-->
     </div>
     <!--    发布按钮-->
     <el-button @click="handelToEdit"
@@ -184,15 +249,15 @@ export default {
     <!--    通知按钮-->
     <div class="notice_container" v-if="is_login">
       <el-dropdown trigger="click">
-        <el-badge :value="notice">
+        <el-badge :value="notice_count" :hidden="!notice_count">
           <el-button icon="el-icon-bell" circle></el-button>
         </el-badge>
         <el-dropdown-menu slot="dropdown">
           <el-dropdown-item v-for="n in notices"
                             style="width: 100px;position: relative;"
-                            :key="n.value" @click="handleNotice(n.value)">
+                            :key="n.value" @click.native="handleNotice(n)">
             {{ n.label }}
-            <el-badge class="mask" :value="n.count"
+            <el-badge class="mask" :value="n.count" :hidden="!n.count"
                       style="position: absolute;right: 10px;top: 6px"></el-badge>
           </el-dropdown-item>
         </el-dropdown-menu>

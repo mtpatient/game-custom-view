@@ -1,5 +1,6 @@
 <script>
 import CommentShow from "@/components/CommentShow.vue";
+import {debounce} from "@/js/util";
 
 export default {
   name: "commentList",
@@ -8,7 +9,68 @@ export default {
   },
   data() {
     return {
-      comments: []
+      comments: [],
+      params: {
+        id: this.$route.query.id,
+        page_index: 1,
+        page_size: 5,
+        show_type: 1, // 1: 我的评论， 2：回复我的
+      },
+      loading: false,
+      end: false,
+      scroller: null,
+    }
+  },
+  created() {
+    this.getMineComment()
+  },
+  mounted() {
+    this.$nextTick(() => {
+      this.scroller = debounce(() => {
+        this.loading = !this.end;
+        // console.log(this.loading, this.end)
+      }, this.handleScroll, 200)
+      window.addEventListener('scroll', this.scroller)
+    })
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.scroller)
+  },
+  methods: {
+    handleScroll() {
+      console.log('scroll',this.loading, this.end)
+      // 获取页面的滚动位置
+      const scrollPosition = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+
+      // 获取页面高度
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // 检查是否滚动到页面底部
+      if (scrollPosition + windowHeight >= documentHeight/2 && !this.end) {
+        // 触发函数
+        this.params.page_index++
+        this.getMineComment()
+        this.loading = false
+      }
+    },
+    getMineComment() {
+      this.$axios.post('/comment/getMineComments', this.params).then(res => {
+        if (res.data.code === 0) {
+          const comments = res.data.data.comments
+          if (comments != null) {
+            this.comments.push(...comments)
+            if (comments.length < this.params.page_size) {
+              this.end = true
+            }
+          } else {
+            this.end = true
+          }
+        }
+        console.log(this.loading, this.end)
+      }).catch(err => {
+        console.log(err)
+      })
     }
   }
 }
@@ -20,7 +82,14 @@ export default {
       <h2 class="title">评论</h2>
     </div>
     <div class="content">
-      <Comment></Comment>
+      <ul class="list">
+        <li v-for="comment in comments" :key="comment.id" class="item">
+          <Comment :self="true"
+                   :comment="comment"></Comment>
+        </li>
+      </ul>
+      <p class="end" v-if="comments.length && loading">- 加载中 -</p>
+      <p class="end" v-if="comments.length && end">- 暂无更多内容 -</p>
       <div v-if="!comments.length" class="no-content">
         <el-image style="margin-bottom: 24px;height: 168px;width: 195px"
                   :src="require('@/assets/no-content.png')"></el-image>
@@ -33,6 +102,30 @@ export default {
 </template>
 
 <style scoped>
+.end {
+  text-align: center;
+  font-weight: 400;
+  color: #8c95a3;
+  font-size: 14px;
+  line-height: 22px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.item {
+  padding: 20px 0;
+}
+
+.item:not(last-child) {
+  border-bottom: 1px solid #ebebeb;
+}
+
 .content-item-title {
   border-bottom: 1px solid #EDEFF5;
   padding-bottom: 20px;

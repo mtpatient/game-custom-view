@@ -14,7 +14,7 @@ export default {
         if (expired) {
             source.value = JSON.stringify({data: value, expired: now + (1000 * 60 * expired)});
         } else {
-            source.value = JSON.stringify({data: value, expired: now + (1000 * 60)});
+            source.value = JSON.stringify({data: value, expired: now + (1000 * 60 * 10000)});
         }
         localStorage.setItem(source.key, source.value);
     },

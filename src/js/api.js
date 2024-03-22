@@ -1,6 +1,6 @@
 import axios from "axios";
 import config from "@/config";
-import {Message} from 'element-ui'
+import {Message, MessageBox} from 'element-ui'
 import router from "@/router";
 import storage from "@/js/storage";
 
@@ -43,18 +43,31 @@ instance.interceptors.response.use(response => {
                     break;
                 case 401:
                     error.message = '未授权，请重新登录'
+                    MessageBox.confirm("您的登录已过期，是否前往登录页面?", "提示", {
+                        confirmButtonText: "前往登录",
+                        cancelButtonText: "取消",
+                    }).then(() => {
+                        console.log('前往登录')
+                        router.push('/login')
+                    }).catch(() => {
+                        console.log('取消登录')
+                    })
+                    storage.remove("token")
+                    storage.remove("user")
                     break;
                 case 403:
                     error.message = '拒绝访问'
-                    router.push('/login').then(() => {
-                        Message({
-                            message: '请先登录',
-                            type: 'error'
-                        })
-                        console.log('403, 请先登录')
-                        storage.remove("token")
-                        storage.remove("user")
+                    MessageBox.confirm("您尚未登录，是否前往登录页面?", "提示", {
+                        confirmButtonText: "前往登录",
+                        cancelButtonText: "取消",
+                    }).then(() => {
+                        console.log('前往登录')
+                        router.push('/login')
+                    }).catch(() => {
+                        console.log('取消登录')
                     })
+                    console.log('403, 请先登录')
+
                     break;
                 case 404:
                     error.message = '请求错误,未找到该资源'

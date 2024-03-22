@@ -37,7 +37,7 @@ export default {
     commentId:{
       type: [String, Number],
       required: true,
-    }
+    },
   },
   created() {
     console.log(this.isFloor, this.postId, this.toUserId, this.parentId, this.commentId)

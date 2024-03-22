@@ -60,5 +60,6 @@ export default {
 .goTop {
   height: 98vh;
   overflow-x: hidden;
+  //float: inherit;
 }
 </style>

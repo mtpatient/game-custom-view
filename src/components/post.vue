@@ -428,6 +428,10 @@ export default {
   font-weight: 500;
 }
 
+.post-main-content:hover {
+  color: #1db5b8;
+}
+
 .post-main-content .post-p {
   font-size: 14px;
   font-weight: 400;
@@ -464,7 +468,7 @@ export default {
   color: #aeb6c2;
 }
 
-.active-box span:not(last-child) {
+.active-box span:not(:last-child) {
   margin-right: 24px;
 }
 

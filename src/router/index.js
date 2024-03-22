@@ -32,6 +32,48 @@ const baseRoutes = [
         meta: {
             title: '帖子详情'
         }
+    },
+    {
+        path: '/message',
+        name: 'message',
+        component: () => import('@/view/message.vue'),
+        meta: {
+            title: '我的消息'
+        },
+        children: [
+            {
+                path: '/message/comment',
+                name: 'comment',
+                component: () => import('@/view/message/comments.vue'),
+                meta: {
+                    title: '评论我的'
+                }
+            },
+            {
+                path: '/message/like',
+                name: 'like',
+                component: () => import('@/view/message/likeMessage.vue'),
+                meta: {
+                    title: '点赞我的'
+                }
+            },
+            {
+                path: '/message/notice',
+                name: 'notice',
+                component: () => import('@/view/message/notices.vue'),
+                meta: {
+                    title: '网站通知'
+                }
+            },
+        ]
+    },
+    {
+        path: '/search',
+        name: 'search',
+        component: () => import('@/view/search.vue'),
+        meta: {
+            title: '搜索'
+        }
     }
 ];
 

@@ -809,7 +809,7 @@ export default {
             </div>
           </div>
           <div class="reply-comment-list">
-            <div v-for="(ch,index) in commentDetail.child" class="main-comment">
+            <div v-for="(ch,index) in commentDetail.child" :key="index" class="main-comment">
               <div class="item-header">
                 <div class="flex-all-center">
                   <el-image class="comment-item-avatar" style="border-radius: 50%"
