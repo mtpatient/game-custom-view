@@ -9,28 +9,7 @@ export default {
   data() {
     return {
       backImg: require("../assets/pns-bg-GELQYdT2.png"),
-      slideImg: [
-        {
-          id: 0,
-          url: `https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/img/2024-03-06/1a0j2908k00czmbuq6694u4900l61xj6`,
-          post_id: 13
-        },
-        {
-          id: 1,
-          url: `https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/img/2024-03-06/1a0j2908k00czmbvwzkjyrwc008a3a7g`,
-          post_id: 17
-        },
-        {
-          id: 3,
-          url: `https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/img/2024-03-18/x584fc0ic80czwq3wu92yuk1002br2bl`,
-          post_id: 20,
-        },
-        {
-          id: 4,
-          url: 'https://game-custom-1312933264.cos.ap-guangzhou.myqcloud.com/img/2024-03-18/x584fc0ic80czwq3wu92yuk200jxeozx',
-          post_id: 14
-        }
-      ],
+      slideImg: [],
       topPosts: [],
       posts: [],
       section: 0, // 0 推荐； 1 关注； 2 板块
@@ -159,9 +138,21 @@ export default {
         this.loading = false
       }
     },
+    getSlideShow() {
+      this.$axios.get('/img/slideshow').then(res => {
+        if (res.data.code === 0) {
+          this.slideImg = res.data.data.images
+        } else {
+          this.$message.error('获取板块列表错误!')
+        }
+      }).catch(err => {
+        console.log(err)
+      })
+    },
   },
   created() {
     this.getRecommend()
+    this.getSlideShow()
     this.$axios.get('/section/all').then(res => {
       if (res.data.code === 0) {
         this.sections = res.data.data.sections
@@ -247,14 +238,23 @@ export default {
           <div class="main-section">
             <div class="main-content-section">
               <div class="header" v-if="section === 1">我的关注</div>
-              <div v-if="section !== 1" class="slideshow">
+              <div v-if="section !== 1 && slideImg.length !== 0" class="slideshow">
                 <el-carousel :interval="5000"
                              indicator-position="outside"
                              trigger="hover"
                              type="card" height="200px">
                   <el-carousel-item height="300px" v-for="item in slideImg" :key="item.id">
                     <el-image @click="ToPostDetail(item.post_id)" :src="item.url" fit="cover"
-                              class="carousel-img"></el-image>
+                              class="carousel-img">
+                    </el-image>
+                    <p style="position: absolute;
+                      top: 0;
+                      font-size: 14px;
+                      color: whitesmoke;
+                      border-radius: 10px;
+                      padding: 0 4px;
+                      opacity: 0.6;
+                     ">{{ item.title }}</p>
                   </el-carousel-item>
                 </el-carousel>
               </div>
@@ -283,11 +283,11 @@ export default {
           </div>
         </div>
         <!--        TODO 搜索历史，搜索排行榜显示-->
-<!--        <div class="aide-right">-->
-<!--          <div class="inside-box">-->
-<!--            <div class="item"></div>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div class="aide-right">-->
+        <!--          <div class="inside-box">-->
+        <!--            <div class="item"></div>-->
+        <!--          </div>-->
+        <!--        </div>-->
       </div>
     </div>
   </div>

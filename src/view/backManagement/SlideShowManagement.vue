@@ -9,39 +9,48 @@ export default {
       dialogFormVisible: false,
       form: {
         id: '',
-        name: '',
-        icon: require('@/assets/upload.png'),
-        Dc: '',
-        role: 2,
+        url: require('@/assets/upload.png'),
       },
-      sections: []
+      images: []
     }
   },
   created() {
-    this.getSections()
+    this.getSlideShow()
   },
   methods: {
     handleEdit(index, row) {
-      this.dialog_title = '修 改 板 块'
+      this.dialog_title = '修 改'
       this.dialogFormVisible = true
-      this.form.id = row.id
-      this.form.name = row.name
-      this.form.Dc = row.dc
-      this.form.icon = row.icon
-      this.form.role = row.role
+      this.form.id = row.post_id
+      this.form.url = row.url
     },
-    handleDelete(index, row) {
-      console.log(index, row);
+    handleDelete(image) {
+      this.$confirm('此操作将永久删除该图片, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+      }).then(() => {
+        this.$axios.del("/img/" + image.id).then(res => {
+          if (res.data.code === 0) {
+            this.$message.success("删除成功")
+            this.getSlideShow()
+          } else {
+            this.$message.error(res.data.msg)
+          }
+        })
+      }).catch(err => {
+        console.log(err)
+      })
     },
     handleAdd() {
+      if (this.images !== null && this.images.length > 6){
+        this.$message.warning("轮播图最多保存7张！")
+        return
+      }
       // 初始化表单
-      this.form.icon = require('@/assets/upload.png')
+      this.form.url = require('@/assets/upload.png')
       this.form.id = ''
-      this.form.name = ''
-      this.form.Dc = ''
-      this.form.role = 2
 
-      this.dialog_title = '添 加 板 块'
+      this.dialog_title = '添 加'
       this.dialogFormVisible = true
     },
     handleImgUpload() {
@@ -65,7 +74,7 @@ export default {
 
                 this.$axios.putImg(signatures[0], files[0], () => {
                   let url = signatures[0].split('?') // 处理签名为url
-                  this.form.icon = url[0]
+                  this.form.url = url[0]
                 })
 
               } else {
@@ -77,51 +86,53 @@ export default {
       }
     },
     handleSubmit() {
-      if (this.form.name === '') {
-        this.$message.error('板块名不能为空!')
+      if (this.form.id === '') {
+        this.$message.error('请输入帖子id!')
         return
       }
-      if (this.form.role === 2) {
-        this.$message.error('请选择板块权限!')
+      if (this.form.url === require('@/assets/upload.png')) {
+        this.$message.error('请上传图片！')
         return;
       }
-      if (this.form.icon === require('@/assets/upload.png')) {
-        this.$message.error('需要上传图标！')
-        return;
-      }
-      if (this.dialog_title === '添 加 板 块') {
-        this.$axios.post('/section', this.form).then(res => {
+      if (this.dialog_title === '添 加') {
+        this.$axios.post('/img/slideshow', this.form).then(res => {
           if (res.data.code === 0) {
             this.$message.success('添加成功')
-            this.getSections()
+            this.getSlideShow()
           } else {
-            this.$message.error('添加失败')
+            this.$message.error(res.data.msg)
           }
         })
       } else {
-        this.$axios.put('/section', this.form).then(res => {
+        this.$axios.put('/img/slideshow', this.form).then(res => {
           if (res.data.code === 0) {
             this.$message.success('修改成功')
-            this.getSections()
+            this.getSlideShow()
           } else {
-            this.$message.error('修改失败')
+            this.$message.error(res.data.msg)
           }
         })
       }
 
       this.dialogFormVisible = false
     },
-    getSections() {
-      this.$axios.get('/section/all').then(res => {
+    getSlideShow() {
+      this.$axios.get('/img/slideshow').then(res => {
         if (res.data.code === 0) {
-          this.sections = res.data.data.sections
+          this.images = res.data.data.images
         } else {
           this.$message.error('获取板块列表错误!')
         }
       }).catch(err => {
         console.log(err)
       })
-    }
+    },
+    ToPostDetail(id) {
+      const page = this.$router.resolve({
+        path: '/post-detail/' + id,
+      })
+      window.open(page.href, '_blank')
+    },
   }
 }
 </script>
@@ -130,7 +141,7 @@ export default {
   <div class="container">
     <el-table
         stripe border
-        :data="sections"
+        :data="images"
         style="width: 100%">
       <el-table-column
           label="创建日期"
@@ -149,29 +160,24 @@ export default {
         </template>
       </el-table-column>
       <el-table-column
-          label="板块名"
-          width="100" prop="name">
-      </el-table-column>
-      <el-table-column
-          label="图标"
-          width="180">
+          label="图片"
+      >
         <template slot-scope="scope">
-          <el-image style="height: 100px; width: 100px" lazy
-                    :src="scope.row.icon" fit="contain"></el-image>
+          <el-image style="height: 200px;" lazy
+                    :src="scope.row.url" fit="contain"></el-image>
         </template>
       </el-table-column>
-      <el-table-column
-          label="官方板块"
-          width="180">
+      <el-table-column label="当前绑定"
+                       width="200">
         <template slot-scope="scope">
-          {{ scope.row.role === 1 ? '是' : '否' }}
+          <el-button
+              size="mini"
+              type="text"
+              @click="ToPostDetail(id)"
+          >{{ scope.row.title}}</el-button>
         </template>
       </el-table-column>
-      <el-table-column
-          label="DC"
-          width="180" prop="dc">
-      </el-table-column>
-      <el-table-column align="right">
+      <el-table-column align="right" width="200">
         <template slot="header">
           <el-button type="primary"
                      icon="el-icon-circle-plus-outline"
@@ -185,31 +191,22 @@ export default {
               type="success"
               @click="handleEdit(scope.$index, scope.row)">Edit
           </el-button>
-          <!--          <el-button-->
-          <!--              size="mini"-->
-          <!--              type="danger"-->
-          <!--              @click="handleDelete(scope.$index, scope.row)">Delete-->
-          <!--          </el-button>-->
+          <el-button
+              size="mini"
+              type="danger"
+              @click="handleDelete(scope.row)">Delete
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
     <el-dialog :title="dialog_title"
                :visible.sync="dialogFormVisible">
       <el-form>
-        <el-form-item label="板块名称（必填）">
-          <el-input v-model="form.name"></el-input>
+        <el-form-item label="关联帖子ID（必填）">
+          <el-input placeholder="请输入要关联的帖子id" v-model="form.id"></el-input>
         </el-form-item>
-        <el-form-item label="板块描述（选填）">
-          <el-input v-model="form.Dc"></el-input>
-        </el-form-item>
-        <el-form-item label="官方板块（必选）">
-          <el-radio-group v-model="form.role">
-            <el-radio :label="1">是</el-radio>
-            <el-radio :label="0">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="图标（必填）">
-          <el-image lazy @click="handleImgUpload" class="form-img" :src="form.icon" fit="contain">
+        <el-form-item label="上传图片（必填）">
+          <el-image lazy @click="handleImgUpload" class="form-img" :src="form.url" fit="contain">
           </el-image>
         </el-form-item>
       </el-form>
@@ -231,9 +228,9 @@ export default {
 }
 
 .form-img {
-  height: 100px;
-  width: 100px;
-  border: 1px dashed gray;
+  height: 300px;
+  width: 300px;
+  border: 1px dashed #8c95a3;
 }
 
 .form-img:hover {

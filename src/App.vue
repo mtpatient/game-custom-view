@@ -37,16 +37,16 @@ export default {
 
   },
   mounted() {
-    this.$axios.get('/user/is_login').then((res) => {
-      if (res.data && !res.data.data.is_login) {
-        this.$storage.remove('token')
-        this.$storage.remove('user')
-        console.log('未登录')
-        this.refreshBar()
-      }
-    }).catch(() => {
-
-    })
+    // this.$axios.get('/user/is_login').then((res) => {
+    //   if (res.data && !res.data.data.is_login) {
+    //     this.$storage.remove('token')
+    //     this.$storage.remove('user')
+    //     console.log('未登录')
+    //     this.refreshBar()
+    //   }
+    // }).catch(() => {
+    //
+    // })
   }
 }
 </script>

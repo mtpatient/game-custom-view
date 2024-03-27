@@ -99,7 +99,7 @@ export default {
             });
             this.getAvatars()
           } else {
-            this.$message.error('服务错误')
+            this.$message.error(res.data.msg)
           }
         })
       }).catch(() => {
@@ -159,57 +159,62 @@ export default {
 
 <template>
   <div class="container">
-    <el-table :data="avatars" style="width: 100%" v-loading="loading">
-      <el-table-column type="index" width="150">
-
-      </el-table-column>
-      <el-table-column
-          label="头像"
-      >
-        <template slot-scope="scope">
-          <el-image style="height: 100px; width: 100px; border-radius: 50%"
-                    :src="scope.row.url" fit="contain" lazy></el-image>
-        </template>
-      </el-table-column>
-      <el-table-column
-          label="头像名"
-          prop="name">
-      </el-table-column>
-      <el-table-column label="添加日期">
-        <template slot-scope="scope">
-          <i class="el-icon-time"></i>
-          <span style="margin-left: 10px">{{ scope.row.create_time }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-          label="更新日期">
-        <template slot-scope="scope">
-          <i class="el-icon-time"></i>
-          <span style="margin-left: 10px">{{ scope.row.update_time }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column align="right">
-        <template slot="header">
-          <el-button type="primary"
-                     icon="el-icon-circle-plus-outline"
-                     @click="handleAdd"
-          >添加
-          </el-button>
-        </template>
-        <template slot-scope="scope">
-          <el-button
-              size="mini"
-              type="success"
-              @click="handleEdit(scope.$index, scope.row)">Edit
-          </el-button>
-          <el-button
-              size="mini"
-              type="danger"
-              @click="handleDelete(scope.$index, scope.row)">Delete
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <div>
+      <el-table :data="avatars"
+                stripe border
+                style="width: 100%" v-loading="loading">
+<!--        <el-table-column type="index" width="150">-->
+<!--        </el-table-column>-->
+        <el-table-column label="添加日期">
+          <template slot-scope="scope">
+            <i class="el-icon-time"></i>
+            <span style="margin-left: 10px">{{ scope.row.create_time }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+            label="更新日期">
+          <template slot-scope="scope">
+            <i class="el-icon-time"></i>
+            <span style="margin-left: 10px">{{ scope.row.update_time }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+            label="头像"
+        >
+          <template slot-scope="scope">
+            <el-image style="height: 50px; width: 50px; border-radius: 50%"
+                      :src="scope.row.url" fit="contain" lazy></el-image>
+          </template>
+        </el-table-column>
+        <el-table-column
+            label="头像名"
+            prop="name">
+        </el-table-column>
+        <el-table-column align="right"
+                         width="160"
+                         fixed="right">
+          <template slot="header">
+            <el-button type="primary"
+                       icon="el-icon-circle-plus-outline"
+                       @click="handleAdd"
+            >添加
+            </el-button>
+          </template>
+          <template slot-scope="scope">
+            <el-button
+                size="mini"
+                type="success"
+                @click="handleEdit(scope.$index, scope.row)">Edit
+            </el-button>
+            <el-button
+                size="mini"
+                type="danger"
+                @click="handleDelete(scope.$index, scope.row)">Delete
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
     <el-dialog :title="dialog_title"
                :visible.sync="dialogFormVisible">
       <el-form>
@@ -218,6 +223,9 @@ export default {
         </el-form-item>
         <el-form-item label="头像">
           <el-image @click="handleImgUpload" class="form-img" :src="form.url" fit="contain">
+            <div @click="handleImgUpload" slot="error">
+              <el-image class="form-img" :src="require('@/assets/defalut_avatar.png')"></el-image>
+            </div>
           </el-image>
         </el-form-item>
       </el-form>
@@ -232,7 +240,6 @@ export default {
 <style scoped>
 .container {
   overflow-y: auto;
-  //padding-bottom: 10px;
   padding: 10px;
   width: 100%;
   height: 100%;

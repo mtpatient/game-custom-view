@@ -47,8 +47,7 @@ export default {
   methods: {
     handleLike() {
       // eslint-disable-next-line vue/no-mutating-props
-      this.post.isLike = !this.post.isLike
-      if (this.post.isLike) {
+      if (!this.post.isLike) {
         this.$axios.post('/post/like', {
           post_id: this.post.id,
           user_id: this.post.user_id,
@@ -59,6 +58,8 @@ export default {
             this.$message.success('点赞成功！')
             // eslint-disable-next-line vue/no-mutating-props
             this.post.like_count++
+            // eslint-disable-next-line vue/no-mutating-props
+            this.post.isLike = !this.post.isLike
             if (this.isUser) {
               this.$emit('like', 1)
             }
@@ -79,6 +80,8 @@ export default {
             this.$message.success('取消点赞！')
             // eslint-disable-next-line vue/no-mutating-props
             this.post.like_count--
+            // eslint-disable-next-line vue/no-mutating-props
+            this.post.isLike = !this.post.isLike
             if (this.isUser) {
               this.$emit('like', -1)
             }

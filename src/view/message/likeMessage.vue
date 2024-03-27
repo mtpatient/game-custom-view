@@ -19,10 +19,10 @@ export default {
   },
   created() {
     this.getMsg()
-    this.$EventBus.$emit('read')
+    // this.$EventBus.$emit('read')
     this.$axios.get("/message/read/2").then(res => {
       if (res.data.code === 0) {
-        // this.$EventBus.$emit('read')
+        this.$EventBus.$emit('read')
       }
     }).catch(err => {
       console.log(err)

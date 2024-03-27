@@ -22,10 +22,8 @@ export default {
       }
       const user = this.$storage.get('user')
       this.$axios.post('/feedback', {
-        feedback: {
-          user_id: user.id,
-          comment: this.content,
-        },
+        user_id: user.id,
+        content: this.content,
         images: this.imgList
       }).then((res) => {
         if (res.data.code === 0) {

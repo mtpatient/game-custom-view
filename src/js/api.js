@@ -30,6 +30,16 @@ instance.interceptors.response.use(response => {
             console.log('刷新过期时间')
             storage.refresh('token', config.EXPIRE_TIME)
             storage.refresh('user', config.EXPIRE_TIME)
+        } else if (response.data.code === 650) {
+            MessageBox.confirm("你的账号已被封禁，请联系管理人员!", "错误", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+            }).then(() => {
+                console.log('确定')
+                // router.push('/login')
+            }).catch(() => {
+                console.log('取消')
+            })
         }
         return response
     },

@@ -99,6 +99,7 @@ export default {
         })
       } else {
         this.$message.error('帖子不存在')
+        this.$router.push('/')
       }
     }).catch(() => {
       console.log('获取帖子失败')

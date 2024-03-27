@@ -17,7 +17,7 @@ export default {
       NickName: '',
       activeTab: "login",
       checked: 'false',
-      img: require('@/assets/bg.jpg'),
+      img: require('@/assets/pns-bg-GELQYdT2.png'),
       isDisabled: false,
       dialogVisible: false,
       email: '',
@@ -280,7 +280,7 @@ export default {
                         placeholder="请输入昵称或邮箱"></el-input>
             </el-form-item>
             <el-form-item label="密码">
-              <el-input clearable show-password v-model="user.password" style="width: 220px;"
+              <el-input @keyup.enter.native="login" clearable show-password v-model="user.password" style="width: 220px;"
                         type="password"></el-input>
             </el-form-item>
             <el-form-item>

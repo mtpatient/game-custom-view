@@ -1,4 +1,6 @@
 <script>
+import {EventSourcePolyfill} from "event-source-polyfill";
+
 export default {
   name: "head_navigate",
   data() {
@@ -27,22 +29,27 @@ export default {
       user: {
         id: 0,
         username: '',
-        avatar: ''
+        avatar: '',
+        status: 0,
       },
       logo: require('@/assets/logo.png'),
       Search: "露西亚",
+      source: null,
     }
   },
   beforeCreate() {
   },
   created() {
     this.getUserInfoFromStorage()
-
-    setInterval(this.getNewsCount, 1000 * 60)
+    // setInterval(this.getNewsCount, 1000 * 60)
+    // const user = this.$storage.get('user')
+    // if (user !== undefined && user !== null) {
+    //
+    // }
+    this.getNewsCount()
+    this.subscribe()
   },
   mounted() {
-    // TODO 获取消息数
-    this.getNewsCount()
     // 解决localstorage同步问题
     window.addEventListener('storage', () => {
       // console.log('update from storage')
@@ -76,9 +83,64 @@ export default {
   beforeDestroy() {
     this.$EventBus.$off('user_update')
     this.$EventBus.$off('read')
+    this.source && this.source.close()
   },
   watch: {},
   methods: {
+    subscribe(options) {
+      if (window.EventSource === undefined || window.EventSource === null) {
+        console.log('EventSource is not supported')
+        return;
+      }
+      const token = this.$storage.get('token')
+      if (token === undefined || token === null) {
+        console.log('user is not login')
+        return
+      }
+      try {
+        this.source = new EventSourcePolyfill(`${this.REQUEST_URL}/message/subscription`,
+            {
+              headers: {
+                "Token": token
+              },
+              heartbeatTimeout: 1000 * 60 * 60 * 1000,// 重连时间
+              // withCredentials: true,
+            })
+
+        this.source.withCredentials = true;
+
+        this.source.onopen = (e) => {
+          console.log("已建立SSE连接~")
+        }
+        this.source.addEventListener('message', (e) => {
+          console.log(e)
+          this.getNewsCount()
+        })
+        this.source.onerror = (e) => {
+          if (e.readyState == EventSource.CLOSED) {
+            //重新设置token
+            // this.source.headers = {
+            //   "Token": this.$storage.get('token')
+            // };
+            console.log("SSE连接关闭");
+            this.source.close()
+            this.subscribe()
+          } else if (this.eventSource.readyState == EventSource.CONNECTING) {
+            console.log("SSE正在重连");
+            this.source.close()
+            this.subscribe()
+            //重新设置token
+            // this.source.headers = {
+            //   "Token": this.$storage.get('token')
+            // };
+          } else {
+            console.log('error', e);
+          }
+        };
+      } catch (e) {
+        console.log(e)
+      }
+    },
     // 获取消息数
     getNewsCount() {
       this.$axios.get('/message/news').then((res) => {
@@ -234,7 +296,8 @@ export default {
       <!--          width="400"-->
       <!--          trigger="click">-->
       <!--        TODO 优化搜索 可回车触发-->
-      <el-input maxlength="28" slot="reference" :placeholder="Search" v-model="searchText" class="search">
+      <el-input @keyup.enter.native="handleSearch" maxlength="28" slot="reference" :placeholder="Search"
+                v-model="searchText" class="search">
         <i slot="suffix"
            class="el-icon-search handleSearch"
            @click="handleSearch"></i>

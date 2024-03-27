@@ -2,8 +2,7 @@
 export default {
   name: "backManagement",
   data() {
-    return {
-    }
+    return {}
   },
   methods: {
     handleOpen(key, keyPath) {
@@ -21,7 +20,7 @@ export default {
     <el-container>
       <el-aside width="210px">
         <el-menu
-            default-active="2"
+            :default-active="$route.path"
             class="el-menu-vertical-demo"
             @open="handleOpen"
             @close="handleClose"
@@ -29,27 +28,51 @@ export default {
             text-color="#fff"
             router
             active-text-color="#ffd04b">
+          <el-menu-item index="/back-Management/index">
+            <i class="el-icon-location"></i>
+            <span slot="title">网站数据</span>
+          </el-menu-item>
           <el-submenu index="1">
             <template slot="title">
-              <i class="el-icon-location"></i>
-              <span>网站运营</span>
+              <i class="el-icon-menu"></i>
+              <span>网站内容</span>
             </template>
             <el-menu-item-group>
               <template slot="title">分组一</template>
               <el-menu-item index="/back-Management/section">板块管理</el-menu-item>
               <el-menu-item index="/back-Management/avatar">头像管理</el-menu-item>
             </el-menu-item-group>
-            <el-menu-item-group title="分组2">
-              <el-menu-item index="1-3">选项3</el-menu-item>
+            <el-menu-item-group>
+              <template slot="title">分组二</template>
+              <el-menu-item index="/back-Management/slide-show">轮播图</el-menu-item>
+              <el-menu-item index="/back-Management/announcement">发布公告</el-menu-item>
             </el-menu-item-group>
           </el-submenu>
-          <el-menu-item index="2">
-            <i class="el-icon-menu"></i>
-            <span slot="title">导航二</span>
+          <el-submenu index="2">
+            <template slot="title">
+              <i class="el-icon-document"></i>
+              <span>用户内容</span>
+            </template>
+            <el-menu-item index="/back-Management/user">
+              用户管理
+            </el-menu-item>
+            <el-menu-item index="/back-Management/post">
+              帖子管理
+            </el-menu-item>
+            <el-menu-item index="/back-Management/comment">
+              评论管理
+            </el-menu-item>
+            <el-menu-item index="/back-Management/images">
+              图片管理
+            </el-menu-item>
+          </el-submenu>
+          <el-menu-item index="/back-Management/feedback">
+            <i class="el-icon-s-promotion"></i>
+            <span slot="title">反馈列表</span>
           </el-menu-item>
-          <el-menu-item index="3" disabled>
-            <i class="el-icon-document"></i>
-            <span slot="title">导航三</span>
+          <el-menu-item index="/back-Management/adm-log">
+            <i class="el-icon-notebook-2"></i>
+            <span slot="title">管理日志</span>
           </el-menu-item>
         </el-menu>
       </el-aside>
@@ -63,7 +86,7 @@ export default {
 <style scoped>
 #management {
   height: calc(100vh - 60px);
-  width: calc(100vw - 22px);
+  width: calc(100vw - 10px);
   overflow-y: hidden;
   display: flex;
 }
@@ -84,10 +107,11 @@ export default {
 }
 
 #main-container {
-  width: 100%;
+  width: calc(100vw - 22px);
   //margin-left: 2px;
+  flex: 1;
   background-color: white;
-  border: 1px solid gray;
+  border: 1px solid #8c95a3;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* 添加阴影效果 */;
